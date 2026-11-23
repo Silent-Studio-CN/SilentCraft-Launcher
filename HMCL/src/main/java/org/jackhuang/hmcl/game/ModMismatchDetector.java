@@ -38,7 +38,8 @@ public final class ModMismatchDetector {
     public static @Nullable Mismatch detect(String text) {
         Matcher report = CRASH_REPORT.matcher(text);
         if (report.find()) {
-            return new Mismatch(report.group(2), report.group(1), report.group(3), report.group(4));
+            String expected = report.group(3).replaceAll("^[\\[']+", "").replaceAll("[\\]']+$", "");
+            return new Mismatch(report.group(2), report.group(1), expected, report.group(4));
         }
 
         Matcher requires = REQUIRES.matcher(text);
