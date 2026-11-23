@@ -59,9 +59,6 @@ public class DownloadPage extends Control implements DecoratorPage, PageAware {
 
     private SimpleMultimap<String, RemoteAddon.Version, List<RemoteAddon.Version>> versions;
 
-    /// Static record of addons installed during this launcher session.
-    private static final Set<String> INSTALLED_ADDONS = java.util.concurrent.ConcurrentHashMap.newKeySet();
-
     /// Dialog to reopen after returning from a dependency page.
     private @Nullable RemoteAddon pendingMod;
     private @Nullable RemoteAddon.Version pendingVersion;
@@ -92,9 +89,29 @@ public class DownloadPage extends Control implements DecoratorPage, PageAware {
         }
     }
 
-    /// Records an addon as installed for the current launcher session.
-    private static void markInstalled(RemoteAddon addon) {
-        INSTALLED_ADDONS.add(addon.slug());
+    /// Returns whether a jar matching the addon already exists in the instance mods folder.
+    private static boolean isInstalled(RemoteAddon addon, HMCLGameInstance.Optional reference) {
+        HMCLGameInstance instance = reference.instance();
+        if (instance == null) {
+            instance = reference.repository().getSelectedInstance();
+        }
+        if (instance == null) {
+            return false;
+        }
+        Path mods = instance.getRunDirectory().resolve("mods");
+        if (!java.nio.file.Files.isDirectory(mods)) {
+            return false;
+        }
+        String slug = addon.slug().toLowerCase(Locale.ROOT);
+        String title = addon.title().toLowerCase(Locale.ROOT);
+        try (var stream = java.nio.file.Files.list(mods)) {
+            return stream.anyMatch(path -> {
+                String name = path.getFileName().toString().toLowerCase(Locale.ROOT);
+                return name.endsWith(".jar") && (name.contains(slug) || name.contains(title));
+            });
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void loadAddonVersions() {
@@ -436,7 +453,7 @@ public class DownloadPage extends Control implements DecoratorPage, PageAware {
                 if (page.shouldDisplayCategory(category))
                     getTags().add(new Tag(page.getLocalizedCategory(category, null), Tag.Type.NORMAL));
             }
-            if (INSTALLED_ADDONS.contains(addon.slug())) {
+            if (isInstalled(addon, instanceReference)) {
                 setTrailingIcon(SVG.CHECK_CIRCLE);
             }
             if (StringUtils.isNotBlank(addon.iconUrl())) {
@@ -617,7 +634,6 @@ public class DownloadPage extends Control implements DecoratorPage, PageAware {
                         });
                         animation.play();
                     }
-                    markInstalled(mod);
                     selfPage.download(mod, version);
                 });
             }
