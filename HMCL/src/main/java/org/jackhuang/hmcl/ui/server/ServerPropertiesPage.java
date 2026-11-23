@@ -50,6 +50,9 @@ public final class ServerPropertiesPage extends DecoratorAnimatedPage implements
     /// Editors that write back into [#properties].
     private final Map<String, Supplier<String>> editors = new LinkedHashMap<>();
 
+    /// Current MOTD string edited by the popup editor.
+    private String motdValue = "";
+
     /// Creates the form editor for one server directory.
     public ServerPropertiesPage(Path directory) {
         this.directory = directory;
@@ -72,11 +75,13 @@ public final class ServerPropertiesPage extends DecoratorAnimatedPage implements
         AdvancedListItem world = item(i18n("server.config.world"), SVG.PUBLIC, this::showWorld);
         AdvancedListItem security = item(i18n("server.config.security"), SVG.PERSON, this::showSecurity);
         AdvancedListItem advanced = item(i18n("server.config.advanced"), SVG.SCRIPT, this::showAdvanced);
+        AdvancedListItem plugins = item(i18n("server.plugins"), SVG.EXTENSION, () ->
+                Controllers.navigate(new PluginsPage(directory)));
         AdvancedListItem openFolder = item(i18n("button.reveal_dir"), SVG.FOLDER, () ->
                 FXUtils.openFolder(directory));
 
         AdvancedListBox sidebar = new AdvancedListBox();
-        sidebar.add(basic).add(gameplay).add(world).add(security).add(advanced).add(openFolder);
+        sidebar.add(basic).add(gameplay).add(world).add(security).add(advanced).add(plugins).add(openFolder);
         getSidebar().add(sidebar);
 
         JFXButton save = FXUtils.newRaisedButton(i18n("button.save"));
@@ -137,7 +142,7 @@ public final class ServerPropertiesPage extends DecoratorAnimatedPage implements
         ComponentList list = new ComponentList();
         list.getContent().addAll(
                 text("server-port", i18n("server.config.port"), "25565"),
-                text("motd", i18n("server.config.motd"), ""),
+                motd(),
                 text("max-players", i18n("server.config.max_players"), "20"),
                 toggle("online-mode", i18n("server.config.online_mode"), i18n("server.config.online_mode.hint")),
                 text("level-name", i18n("server.config.level_name"), "world"),
@@ -206,6 +211,35 @@ public final class ServerPropertiesPage extends DecoratorAnimatedPage implements
         LinePane pane = new LinePane();
         pane.setTitle(title);
         pane.setRight(field);
+        return pane;
+    }
+
+    /// Adds the MOTD preview row with a popup editor button.
+    private LinePane motd() {
+        motdValue = properties.getOrDefault("motd", "");
+
+        javafx.scene.text.TextFlow preview = new javafx.scene.text.TextFlow();
+        preview.setMaxWidth(300);
+        preview.setPadding(new Insets(4, 8, 4, 8));
+        preview.setStyle("-fx-background-color: #1b1b1f; -fx-background-radius: 4;");
+        MotdEditorDialog.render(preview, motdValue);
+
+        JFXButton edit = new JFXButton(i18n("server.config.motd.edit"));
+        edit.setOnAction(event -> {
+            String value = MotdEditorDialog.show(motdValue);
+            if (value != null) {
+                motdValue = value;
+                MotdEditorDialog.render(preview, value);
+            }
+        });
+
+        javafx.scene.layout.HBox right = new javafx.scene.layout.HBox(8, preview, edit);
+        right.setAlignment(Pos.CENTER_RIGHT);
+
+        LinePane pane = new LinePane();
+        pane.setTitle(i18n("server.config.motd"));
+        pane.setRight(right);
+        editors.put("motd", () -> motdValue);
         return pane;
     }
 
