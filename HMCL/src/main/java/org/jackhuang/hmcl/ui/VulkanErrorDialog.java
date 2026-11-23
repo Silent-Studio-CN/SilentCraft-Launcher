@@ -92,25 +92,36 @@ public final class VulkanErrorDialog {
         body.setWrapText(true);
 
         JFXButton install = FXUtils.newRaisedButton(i18n("game.vulkan.install"));
-        install.setOnAction(event -> {
-            install.setDisable(true);
-            install.setText(i18n("game.vulkan.installing"));
-            CompletableFuture.runAsync(() -> installLatest(instance))
-                    .thenRun(() -> Platform.runLater(() -> {
-                        Controllers.showToast(i18n("install.success"));
-                        stage.close();
-                    }))
-                    .exceptionally(throwable -> {
-                        LOG.warning("Failed to install NeoLoading-Vulkan-Fix", throwable);
-                        Platform.runLater(() -> {
+        Runnable launchGame = () -> {
+            stage.close();
+            org.jackhuang.hmcl.ui.instances.Instances.launch(instance);
+        };
+        if (isInstalled(instance)) {
+            install.setText(i18n("game.vulkan.start"));
+            install.setOnAction(event -> launchGame.run());
+        } else {
+            install.setOnAction(event -> {
+                install.setDisable(true);
+                install.setText(i18n("game.vulkan.installing"));
+                CompletableFuture.runAsync(() -> installLatest(instance))
+                        .thenRun(() -> Platform.runLater(() -> {
+                            Controllers.showToast(i18n("install.success"));
                             install.setDisable(false);
-                            install.setText(i18n("game.vulkan.install"));
-                            Controllers.dialog(throwable.getMessage(), i18n("install.failed"),
-                                    org.jackhuang.hmcl.ui.construct.MessageDialogPane.MessageType.ERROR);
+                            install.setText(i18n("game.vulkan.start"));
+                            install.setOnAction(e -> launchGame.run());
+                        }))
+                        .exceptionally(throwable -> {
+                            LOG.warning("Failed to install NeoLoading-Vulkan-Fix", throwable);
+                            Platform.runLater(() -> {
+                                install.setDisable(false);
+                                install.setText(i18n("game.vulkan.install"));
+                                Controllers.dialog(throwable.getMessage(), i18n("install.failed"),
+                                        org.jackhuang.hmcl.ui.construct.MessageDialogPane.MessageType.ERROR);
+                            });
+                            return null;
                         });
-                        return null;
-                    });
-        });
+            });
+        }
         JFXButton close = new JFXButton(i18n("button.close"));
         close.setStyle("-fx-background-color: -monet-surface-variant; -fx-text-fill: -monet-on-surface;");
         close.setOnAction(event -> stage.close());
@@ -136,12 +147,24 @@ public final class VulkanErrorDialog {
         stage.show();
     }
 
+    /// Resolves the actual Minecraft version from the instance patches.
+    private static String gameVersion(HMCLGameInstance instance) {
+        var patches = instance.getManifest().patches();
+        if (patches != null) {
+            for (var patch : patches) {
+                if ("game".equals(patch.id()) && patch.version() != null) {
+                    return patch.version();
+                }
+            }
+        }
+        var inherits = instance.getManifest().inheritsFrom();
+        return inherits != null ? inherits.toString() : instance.getId().toString();
+    }
+
     /// Downloads the latest NeoLoading-Vulkan-Fix jar into the instance mods folder.
     public static void installLatest(HMCLGameInstance instance) {
         try {
-            String mcVersion = instance.getManifest().inheritsFrom() != null
-                    ? instance.getManifest().inheritsFrom().toString()
-                    : instance.getId().toString();
+            String mcVersion = gameVersion(instance);
             String body = fetch("https://api.modrinth.com/v2/project/" + PROJECT_ID + "/version");
             JsonArray versions = JsonParser.parseString(body).getAsJsonArray();
             for (var element : versions) {
