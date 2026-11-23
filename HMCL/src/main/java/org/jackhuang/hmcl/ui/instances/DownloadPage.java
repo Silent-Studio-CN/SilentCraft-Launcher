@@ -42,7 +42,7 @@ import static org.jackhuang.hmcl.ui.FXUtils.onEscPressed;
 import static org.jackhuang.hmcl.util.i18n.I18n.i18n;
 import static org.jackhuang.hmcl.util.logging.Logger.LOG;
 
-public class DownloadPage extends Control implements DecoratorPage {
+public class DownloadPage extends Control implements DecoratorPage, PageAware {
 
     private final ReadOnlyObjectWrapper<State> state = new ReadOnlyObjectWrapper<>();
     private final BooleanProperty loaded = new SimpleBooleanProperty(false);
@@ -59,6 +59,13 @@ public class DownloadPage extends Control implements DecoratorPage {
 
     private SimpleMultimap<String, RemoteAddon.Version, List<RemoteAddon.Version>> versions;
 
+    /// Static record of addons installed during this launcher session.
+    private static final Set<String> INSTALLED_ADDONS = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /// Dialog to reopen after returning from a dependency page.
+    private @Nullable RemoteAddon pendingMod;
+    private @Nullable RemoteAddon.Version pendingVersion;
+
     public DownloadPage(DownloadListPage page, RemoteAddon addon, HMCLGameInstance.Optional instanceReference, @Nullable DownloadCallback callback) {
         this.page = page;
         this.repository = page.repository;
@@ -71,6 +78,23 @@ public class DownloadPage extends Control implements DecoratorPage {
         loadAddonVersions();
 
         this.state.set(State.fromTitle(addon.title()));
+    }
+
+    @Override
+    public void onPageShown() {
+        if (pendingMod != null && pendingVersion != null) {
+            RemoteAddon mod = pendingMod;
+            RemoteAddon.Version version = pendingVersion;
+            pendingMod = null;
+            pendingVersion = null;
+            javafx.application.Platform.runLater(() ->
+                    Controllers.dialog(new AddonVersion(mod, version, this)));
+        }
+    }
+
+    /// Records an addon as installed for the current launcher session.
+    private static void markInstalled(RemoteAddon addon) {
+        INSTALLED_ADDONS.add(addon.slug());
     }
 
     private void loadAddonVersions() {
@@ -377,7 +401,8 @@ public class DownloadPage extends Control implements DecoratorPage {
 
         /// Creates a dependency row that opens a nested version dialog.
         DependencyAddonItem(DownloadListPage page, DownloadPage selfPage,
-                            RemoteAddon addon, HMCLGameInstance.Optional instanceReference) {
+                            RemoteAddon addon, HMCLGameInstance.Optional instanceReference,
+                            RemoteAddon parentMod, RemoteAddon.Version parentVersion) {
             this.addon = addon;
 
             container.setPadding(new Insets(10, 24, 10, 24));
@@ -396,14 +421,12 @@ public class DownloadPage extends Control implements DecoratorPage {
                 case SHADER_PACK -> org.jackhuang.hmcl.ui.download.DownloadPage.FOR_SHADER;
                 default -> null; // Dependencies should not be modpacks, worlds or customized stuff
             };
-            setOnAction((e) -> Task.<RemoteAddon.Version>supplyAsync(() ->
-                            addon.data().loadVersions(selfPage.repository, page.getDownloadProvider())
-                                    .findFirst().orElse(null))
-                    .whenComplete(Schedulers.javafx(), (version, exception) -> {
-                        if (exception == null && version != null) {
-                            Controllers.dialog(new AddonVersion(addon, version, selfPage));
-                        }
-                    }));
+            setOnAction((e) -> {
+                selfPage.pendingMod = parentMod;
+                selfPage.pendingVersion = parentVersion;
+                fireEvent(new DialogCloseEvent());
+                Controllers.navigate(new DownloadPage(page, addon, instanceReference, callback));
+            });
             @Nullable AddonProjectInfoRegistry<?> registry = AddonProjectInfoRegistry.getByAddonType(type);
             @Nullable AddonProjectInfo mod = registry != null ? registry.getInfoByCurseForgeId(addon.slug()) : null;
             setTitle(mod != null && I18n.isUseChinese() ? mod.displayName() : addon.title());
@@ -412,6 +435,9 @@ public class DownloadPage extends Control implements DecoratorPage {
             for (String category : addon.categories()) {
                 if (page.shouldDisplayCategory(category))
                     getTags().add(new Tag(page.getLocalizedCategory(category, null), Tag.Type.NORMAL));
+            }
+            if (INSTALLED_ADDONS.contains(addon.slug())) {
+                setTrailingIcon(SVG.CHECK_CIRCLE);
             }
             if (StringUtils.isNotBlank(addon.iconUrl())) {
                 imageView.imageProperty().bind(FXUtils.newRemoteImage(addon.iconUrl(), 80, 80, true, true));
@@ -500,7 +526,12 @@ public class DownloadPage extends Control implements DecoratorPage {
 
     private static final class AddonVersion extends JFXDialogLayout {
         /// Creates version details with dependency downloads and a non-navigating summary.
+        private final RemoteAddon parentMod;
+        private final RemoteAddon.Version parentVersion;
+
         public AddonVersion(RemoteAddon mod, RemoteAddon.Version version, DownloadPage selfPage) {
+            this.parentMod = mod;
+            this.parentVersion = version;
             RemoteAddon.Type type = selfPage.type;
 
             String title = switch (type) {
@@ -586,6 +617,7 @@ public class DownloadPage extends Control implements DecoratorPage {
                         });
                         animation.play();
                     }
+                    markInstalled(mod);
                     selfPage.download(mod, version);
                 });
             }
@@ -640,7 +672,8 @@ public class DownloadPage extends Control implements DecoratorPage {
                                     hasBroken.set(true);
                                     return;
                                 }
-                                DependencyAddonItem dependencyAddonItem = new DependencyAddonItem(selfPage.page, selfPage, dep, selfPage.instanceReference);
+                                DependencyAddonItem dependencyAddonItem = new DependencyAddonItem(selfPage.page, selfPage, dep,
+                                        selfPage.instanceReference, parentMod, parentVersion);
                                 var listener = FXUtils.onWeakChangeAndOperate(dependenciesList.widthProperty(), d -> FXUtils.setLimitWidth(dependencyAddonItem, d.doubleValue()));
                                 dependencyAddonItem.getProperties().put("DependencyAddonItem.width", listener);
                                 dependencies.get(dependency.getType()).value().add(dependencyAddonItem);

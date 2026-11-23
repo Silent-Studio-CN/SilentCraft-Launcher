@@ -21,6 +21,8 @@ import org.jackhuang.hmcl.setting.StyleSheets;
 import org.jackhuang.hmcl.task.Schedulers;
 import org.jetbrains.annotations.NotNullByDefault;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
 import static org.jackhuang.hmcl.util.i18n.I18n.i18n;
@@ -72,12 +74,35 @@ public final class ModFixWindow {
                     }));
         });
 
+        JFXButton remove = new JFXButton(i18n("game.mod_mismatch.remove"));
+        remove.setMaxWidth(Double.MAX_VALUE);
+        remove.setStyle("-fx-background-color: -monet-surface-variant; -fx-text-fill: -monet-on-surface;");
+        remove.setOnAction(event -> {
+            try {
+                Path mods = instance.getRunDirectory().resolve("mods");
+                if (Files.isDirectory(mods)) {
+                    try (var stream = Files.list(mods)) {
+                        for (Path file : stream.filter(path -> path.getFileName().toString()
+                                .toLowerCase(java.util.Locale.ROOT).contains(mismatch.mod().toLowerCase(java.util.Locale.ROOT)))
+                                .toList()) {
+                            Files.deleteIfExists(file);
+                        }
+                    }
+                }
+                Controllers.showToast(i18n("game.mod_mismatch.removed"));
+                panel.close();
+            } catch (Exception e) {
+                Controllers.dialog(e.getMessage(), i18n("install.failed"),
+                        org.jackhuang.hmcl.ui.construct.MessageDialogPane.MessageType.ERROR);
+            }
+        });
+
         JFXButton close = new JFXButton(i18n("button.close"));
         close.setMaxWidth(Double.MAX_VALUE);
         close.setStyle("-fx-background-color: -monet-surface-variant; -fx-text-fill: -monet-on-surface;");
         close.setOnAction(event -> panel.close());
 
-        VBox body = new VBox(12, detection, fix, install, close);
+        VBox body = new VBox(12, detection, fix, install, remove, close);
         body.setPadding(new Insets(16));
         body.setStyle("-fx-background-color: -monet-surface; -fx-background-radius: 0 0 10 10;");
         VBox.setVgrow(fix, Priority.ALWAYS);
@@ -89,7 +114,7 @@ public final class ModFixWindow {
         root.setPadding(new Insets(10));
         root.setStyle("-fx-background-color: transparent;");
 
-        Scene scene = new Scene(root, 340, Math.max(420, crashWindow.getHeight()));
+        Scene scene = new Scene(root, 340, crashWindow.getHeight());
         scene.setFill(Color.TRANSPARENT);
         StyleSheets.init(scene);
         panel.setScene(scene);
@@ -102,6 +127,7 @@ public final class ModFixWindow {
         crashWindow.heightProperty().addListener(follow);
         crashWindow.setOnHidden(event -> panel.close());
 
+        panel.setOnShown(event -> panel.setHeight(crashWindow.getHeight()));
         panel.show();
     }
 
@@ -109,6 +135,6 @@ public final class ModFixWindow {
     private static void position(Stage panel, Stage crashWindow) {
         panel.setX(crashWindow.getX() + crashWindow.getWidth() - 8);
         panel.setY(crashWindow.getY());
-        panel.setHeight(Math.max(420, crashWindow.getHeight()));
+        panel.setHeight(crashWindow.getHeight());
     }
 }

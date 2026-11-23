@@ -144,10 +144,26 @@ public final class VulkanErrorDialog {
     /// Downloads the latest NeoLoading-Vulkan-Fix jar into the instance mods folder.
     public static void installLatest(HMCLGameInstance instance) {
         try {
+            String mcVersion = instance.getManifest().inheritsFrom() != null
+                    ? instance.getManifest().inheritsFrom().toString()
+                    : instance.getId().toString();
             String body = fetch("https://api.modrinth.com/v2/project/" + PROJECT_ID + "/version");
             JsonArray versions = JsonParser.parseString(body).getAsJsonArray();
             for (var element : versions) {
                 JsonObject version = element.getAsJsonObject();
+                JsonArray gameVersions = version.getAsJsonArray("game_versions");
+                boolean compatible = false;
+                if (gameVersions != null) {
+                    for (var gameVersion : gameVersions) {
+                        if (mcVersion.equals(gameVersion.getAsString())) {
+                            compatible = true;
+                            break;
+                        }
+                    }
+                }
+                if (!compatible) {
+                    continue;
+                }
                 JsonArray files = version.getAsJsonArray("files");
                 if (files == null || files.isEmpty()) {
                     continue;
@@ -163,7 +179,7 @@ public final class VulkanErrorDialog {
                 }
                 return;
             }
-            throw new IllegalStateException(i18n("game.vulkan.not_found"));
+            throw new IllegalStateException(i18n("game.vulkan.no_compatible", mcVersion));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
