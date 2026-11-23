@@ -315,6 +315,7 @@ public final class MainPage extends StackPane implements DecoratorPage {
             title.setStyle("-fx-font-size: 16px;");
             Label current = new Label();
             current.setStyle("-fx-font-size: 12px;");
+            ServerSelection.getSelected();
             FXUtils.onChangeAndOperate(ServerSelection.selectedProperty(), server -> {
                 if (server == null) {
                     current.setText(i18n("server.launch.none"));
@@ -326,7 +327,35 @@ public final class MainPage extends StackPane implements DecoratorPage {
             graphic.getChildren().setAll(title, current);
             serverLaunchButton.setGraphic(graphic);
             FXUtils.setOnActionWithCooldown(serverLaunchButton, this::launchServer);
-            serverLaunchPane.getChildren().setAll(serverLaunchButton);
+
+            JFXButton serverMenuButton = new JFXButton();
+            serverMenuButton.getStyleClass().add("menu-button");
+            serverMenuButton.setGraphic(SVG.ARROW_DROP_UP.createIcon(30));
+            serverMenuButton.setOnAction(event -> {
+                org.jackhuang.hmcl.ui.construct.PopupMenu menu = new org.jackhuang.hmcl.ui.construct.PopupMenu();
+                JFXPopup popup = new JFXPopup(menu);
+                menu.getContent().setAll(
+                        new org.jackhuang.hmcl.ui.construct.IconedMenuItem(SVG.EDIT,
+                                i18n("server.local.config"), () -> {
+                                    ServerRepository.ServerInstance server = ServerSelection.getSelected();
+                                    if (server != null) {
+                                        Controllers.navigate(new org.jackhuang.hmcl.ui.server.ServerPropertiesPage(server.directory()));
+                                    }
+                                }, popup),
+                        new org.jackhuang.hmcl.ui.construct.IconedMenuItem(SVG.FOLDER_OPEN,
+                                i18n("button.reveal_dir"), () -> {
+                                    ServerRepository.ServerInstance server = ServerSelection.getSelected();
+                                    if (server != null) {
+                                        FXUtils.openFolder(server.directory());
+                                    }
+                                }, popup),
+                        new org.jackhuang.hmcl.ui.construct.IconedMenuItem(SVG.CLOSE,
+                                i18n("server.console.stop"), org.jackhuang.hmcl.server.ServerConsole::stop, popup),
+                        new org.jackhuang.hmcl.ui.construct.IconedMenuItem(SVG.HOST,
+                                i18n("server.local.list"), () -> Controllers.navigate(Controllers.getServerListPage()), popup));
+                popup.show(serverMenuButton, JFXPopup.PopupVPosition.BOTTOM, JFXPopup.PopupHPosition.LEFT, 0, 0);
+            });
+            serverLaunchPane.getChildren().setAll(serverLaunchButton, serverMenuButton);
         }
 
         getChildren().addAll(updatePane, launchPane, serverLaunchPane);

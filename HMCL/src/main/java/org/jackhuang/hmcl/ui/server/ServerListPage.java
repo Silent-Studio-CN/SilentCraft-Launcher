@@ -152,11 +152,30 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
         }
     }
 
-    /// Removes a server root; yes deletes its files, no only removes the HMCL record.
+    /// Offers record-only removal, typed deletion, or cancel for a root directory.
     private void removeDirectory(Path root) {
-        Controllers.confirm(i18n("server.local.remove_directory.message"), i18n("server.local.remove_directory"),
-                () -> removeRoot(root, true),
-                () -> removeRoot(root, false));
+        org.jackhuang.hmcl.ui.construct.MessageDialogPane pane =
+                new org.jackhuang.hmcl.ui.construct.MessageDialogPane.Builder(
+                        i18n("server.local.remove_directory.message"),
+                        i18n("server.local.remove_directory"),
+                        org.jackhuang.hmcl.ui.construct.MessageDialogPane.MessageType.QUESTION)
+                        .addAction(i18n("server.local.remove_record"), () -> removeRoot(root, false))
+                        .addAction(i18n("server.local.remove_files"), () -> confirmTypedRoot(root))
+                        .addCancel(null)
+                        .build();
+        Controllers.dialog(pane);
+    }
+
+    /// Requires typing the folder name before deleting a root and its files.
+    private void confirmTypedRoot(Path root) {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        dialog.setTitle(i18n("server.local.remove_directory"));
+        dialog.setHeaderText(i18n("server.local.delete_confirm", root.getFileName()));
+        dialog.showAndWait().ifPresent(name -> {
+            if (name.equals(root.getFileName().toString())) {
+                removeRoot(root, true);
+            }
+        });
     }
 
     /// Removes a root and refreshes the visible list.
@@ -223,7 +242,11 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
 
         private ServerList() {
             setItems(filteredList);
-            setOnFailedAction(event -> Controllers.navigate(new DownloadPage()));
+            setOnFailedAction(event -> {
+                DownloadPage page = new DownloadPage();
+                Controllers.navigate(page);
+                page.selectPaperServerTab();
+            });
             refreshList();
         }
 
@@ -235,8 +258,28 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
             List<ServerRepository.ServerInstance> instances = ServerRepository.listInstances(root);
             sourceList.setAll(instances.stream().map(ServerItem::new).toList());
 
+            ServerRepository.ServerInstance desired = org.jackhuang.hmcl.server.ServerSelection.getSelected();
+            ServerRepository.ServerInstance current = desired;
+            if (current == null || instances.stream().noneMatch(instance ->
+                    instance.directory().toAbsolutePath().normalize()
+                            .equals(current.directory().toAbsolutePath().normalize()))) {
+                desired = org.jackhuang.hmcl.server.ServerSelection.defaultForRoot(root);
+                org.jackhuang.hmcl.server.ServerSelection.select(desired);
+            }
+
+            if (desired != null) {
+                ServerRepository.ServerInstance target = desired;
+                sourceList.stream()
+                        .filter(item -> item.instance().directory().toAbsolutePath().normalize()
+                                .equals(target.directory().toAbsolutePath().normalize()))
+                        .findFirst()
+                        .ifPresent(selected::set);
+            } else {
+                selected.set(null);
+            }
+
             if (instances.isEmpty()) {
-                setFailedReason(i18n("server.local.empty"));
+                setFailedReason(i18n("server.local.empty") + System.lineSeparator() + i18n("server.local.empty.click"));
             }
 
             setLoading(false);
@@ -497,16 +540,46 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
             }
         }
 
-        /// Deletes the server directory after confirmation.
+        /// Deletes the instance without ever deleting a configured root directory.
         private void remove(ServerItem item) {
-            Controllers.confirm(i18n("instance.manage.remove"), item.title.get(), () -> {
-                try {
-                    deleteDirectory(item.instance().directory());
-                    list.refreshList();
-                } catch (IOException e) {
-                    LOG.warning("Failed to delete server directory", e);
+            Path directory = item.instance().directory().toAbsolutePath().normalize();
+            boolean rootLevel = ServerRepository.getDirectories().stream()
+                    .anyMatch(root -> root.toAbsolutePath().normalize().equals(directory));
+
+            if (rootLevel) {
+                Controllers.confirm(i18n("server.local.delete_root_level.message"),
+                        i18n("instance.manage.remove"), () -> {
+                            try {
+                                Files.deleteIfExists(directory.resolve(item.instance().metadata().jar()));
+                                list.refreshList();
+                            } catch (IOException e) {
+                                LOG.warning("Failed to delete server jar", e);
+                            }
+                        }, null);
+                return;
+            }
+
+            Controllers.confirm(i18n("server.local.delete_instance.message"),
+                    i18n("instance.manage.remove"), () -> confirmTypedDelete(directory, () -> {
+                        try {
+                            deleteDirectory(directory);
+                            list.refreshList();
+                        } catch (IOException e) {
+                            LOG.warning("Failed to delete server directory", e);
+                        }
+                    }), null);
+        }
+
+        /// Requires typing the directory name before deleting it.
+        private void confirmTypedDelete(Path directory, Runnable action) {
+            javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+            dialog.setTitle(i18n("instance.manage.remove"));
+            dialog.setHeaderText(i18n("server.local.delete_confirm", directory.getFileName()));
+            dialog.showAndWait().ifPresent(name -> {
+                if (name.equals(directory.getFileName().toString())) {
+                    action.run();
                 }
-            }, null);
+            });
         }
 
         /// Recursively copies a directory.
