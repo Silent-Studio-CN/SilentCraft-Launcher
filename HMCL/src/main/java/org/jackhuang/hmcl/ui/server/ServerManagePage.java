@@ -86,12 +86,14 @@ public final class ServerManagePage extends DecoratorAnimatedPage implements Dec
 
         console.setEditable(false);
         console.setWrapText(false);
+        console.getStyleClass().add("server-console");
         console.setStyle("-fx-font-family: 'Menlo', 'Consolas', monospace;");
         VBox.setVgrow(console, Priority.ALWAYS);
 
         command.setPromptText(i18n("server.console.command"));
         HBox.setHgrow(command, Priority.ALWAYS);
         JFXButton send = new JFXButton(i18n("server.console.send"));
+        send.setMinWidth(80);
         send.setOnAction(event -> {
             ServerConsole.sendCommand(command.getText());
             command.clear();

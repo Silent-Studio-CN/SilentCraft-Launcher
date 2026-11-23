@@ -2190,3 +2190,22 @@
 .date-picker-popup .title {
     -fx-text-fill: -monet-on-surface-variant;
 }
+
+/*******************************************************************************
+ * Server console                                                              *
+ *******************************************************************************/
+
+.server-console {
+    -fx-control-inner-background: -monet-surface;
+    -fx-background-color: -monet-surface;
+    -fx-text-fill: -monet-on-surface;
+}
+
+.server-console .content {
+    -fx-background-color: -monet-surface;
+}
+
+.server-console .scroll-pane,
+.server-console .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
