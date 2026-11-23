@@ -506,11 +506,24 @@ public class DownloadPage extends Control implements DecoratorPage {
                 default -> "mods.download.title";
             };
             this.setHeading(new HBox(new Label(i18n(title, version.name()))));
+            this.setPrefWidth(980);
+            this.setMaxWidth(980);
 
             VBox box = new VBox(8);
             box.setPadding(new Insets(8));
             var addonItem = new AddonItem(mod, version, selfPage, false);
             box.getChildren().setAll(addonItem);
+
+            javafx.scene.layout.StackPane check = new javafx.scene.layout.StackPane(
+                    SVG.CHECK_CIRCLE.createIcon(30));
+            check.setMouseTransparent(true);
+            check.setVisible(false);
+            check.setScaleX(0);
+            check.setScaleY(0);
+            check.setStyle("-fx-fill: #55FF55;");
+            javafx.scene.layout.StackPane.setAlignment(check, Pos.TOP_RIGHT);
+            javafx.scene.layout.StackPane.setMargin(check, new Insets(8, 12, 0, 0));
+            addonItem.getChildren().add(check);
 
             JFXHyperlink changelogButton = new JFXHyperlink(i18n("addon.changelog"));
             changelogButton.setOnAction(__ -> Controllers.dialog(new AddonChangelog(version, selfPage.repository, selfPage.page.getDownloadProvider())));
@@ -547,7 +560,26 @@ public class DownloadPage extends Control implements DecoratorPage {
                 downloadButton.getStyleClass().add("dialog-accept");
                 downloadButton.setOnAction(e -> {
                     if (type == RemoteAddon.Type.MODPACK || !spinnerPane.isLoading() && spinnerPane.getFailedReason() == null) {
-                        fireEvent(new DialogCloseEvent());
+                        check.setVisible(true);
+                        javafx.animation.ScaleTransition grow = new javafx.animation.ScaleTransition(
+                                javafx.util.Duration.millis(220), check);
+                        grow.setFromX(0.2);
+                        grow.setFromY(0.2);
+                        grow.setToX(1.15);
+                        grow.setToY(1.15);
+                        javafx.animation.ScaleTransition settle = new javafx.animation.ScaleTransition(
+                                javafx.util.Duration.millis(120), check);
+                        settle.setToX(1);
+                        settle.setToY(1);
+                        javafx.animation.SequentialTransition animation =
+                                new javafx.animation.SequentialTransition(grow, settle);
+                        animation.setOnFinished(event -> {
+                            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(
+                                    javafx.util.Duration.millis(350));
+                            pause.setOnFinished(__ -> fireEvent(new DialogCloseEvent()));
+                            pause.play();
+                        });
+                        animation.play();
                     }
                     selfPage.download(mod, version);
                 });
