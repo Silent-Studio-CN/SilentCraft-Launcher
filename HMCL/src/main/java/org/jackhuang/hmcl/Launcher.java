@@ -274,7 +274,7 @@ public final class Launcher extends Application {
     }
 
     /// Returns the jar's build timestamp as yyMMddHHmmss.
-    private static String buildNumber() {
+    public static String buildNumber() {
         try {
             Path jar = Path.of(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             Instant modified = Files.getLastModifiedTime(jar).toInstant();

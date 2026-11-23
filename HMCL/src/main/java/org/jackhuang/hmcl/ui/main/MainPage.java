@@ -131,6 +131,9 @@ public final class MainPage extends StackPane implements DecoratorPage {
                 content = i18n("update.channel.dev.hint");
             }
 
+            content = content + System.lineSeparator() + System.lineSeparator()
+                    + i18n("update.channel.build", org.jackhuang.hmcl.Launcher.buildNumber());
+
             VBox announcementCard = new VBox();
 
             BorderPane titleBar = new BorderPane();
