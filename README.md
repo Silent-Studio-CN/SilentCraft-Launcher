@@ -25,6 +25,40 @@ SilentCraft Launcher 是一个基于 [HMCL](https://github.com/HMCL-dev/HMCL) �
 
     MICROSOFT_AUTH_ID=<your-client-id> ./gradlew :HMCL:shadowJar
 
+## 贡献者
+
+### HMCL 上游
+
+本分支基于 HMCL，以下为上游贡献者（按 HMCL 仓库顺序）：
+
+<details>
+<summary>全部 139 位</summary>
+
+@huanghongxun @Glavo @yushijinhun @CiiLu @zkitefly @3gf8jv4dv @burningtnt @KSSJW
+@ToobLac @Wulian233 @evilwk @neveler @Mine-diamond @fishdry1000 @Calboot @pynickle
+@WhatDamon @Xirren @ShulkerSakura @ZekerZhayard @Lokins577 @vanja-san @Hylfrd @lorki
+@wifi-left @Artoria2e5 @LuLu-ling @zhixuan2333 @ZZZank @OrzMiku @IceSoulHanxi @Rovniced
+@pan93412 @Pigeon0v0 @yaoxi-std @e74yp8 @Tungstend @tsl0922 @BANSAFAn @MinecraftYJQ
+@zly2006 @gunngz @hejiehao @TomatoPuddin @NekoCaffeine @ShadowLoveElysia @ShellWen @fatelove42
+@catsout @jihuayu @yuanretro @rootwhois @xmdhs @xiaoyv404 @Cat7373 @hellckt
+@Redlnn @CaaMoe @8MiYile @xfl03 @BBleae @Byacrya @slmpc @Chikage0o0
+@Minecraft269 @AnemoFlower @Lonelyxiya @LasmGratel @GeneralK1ng @HomamLazaref @JasonKhew96 @kfatyuip
+@hihaar @roj234 @glowinXD @gonglinyuan @dxNeil @dovisutu @asl97 @YuanYuanOwO
+@YuChuXi @SALTWOOD @inclyc @YSXX1013 @YELANDAOKONG @TNTyep520 @Sharll-large @SettingDust
+@Chen-Mengze @MingcongBai @TunYuntuwuQWQ @zimzaza4 @z0z0r4 @yangyangdaji @xtexx @vochant
+@TTsdzb @skbeh @olivezane @nekoside-dev @mslxl @machinesmith42 @lyuxc-unknow @lcxn123
+@TSaltedfishKing @Henryxjh @AdminHcat @Fronut @Ghost-chu @BartcreeBart @chang196700 @ExDragine
+@cheny0y0 @CaveNightingale @AustinC2 @Churk-Ben @Asnxthaony @Andepthy @MindsMaster @a012-alex
+@Chihsiao @onion108 @Rei-Hatada @mzdluo123 @outloudvi @paladini-maker @mcendu @NWMA-FYWF
+@Mythologyli @MovTery @mikelei8291 @Krasjet @mvanhorn @luochen1990 @Dobby233Liu @Kylepoops
+@zyxkad @KiteAB @Szizoid
+
+</details>
+
+### SilentCraft
+
+- @Silent-xiaomiao
+
 ## 许可证与署名
 
 本项目同样采用 **GPL-3.0**，并保留 HMCL 的版权与署名。你可以在 LICENSE 和源文件头中查看完整信息。
