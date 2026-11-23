@@ -105,7 +105,15 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
         updateServerManageItem(serverManageItem);
         org.jackhuang.hmcl.server.ServerSelection.selectedProperty()
                 .addListener((obs, o, n) -> updateServerManageItem(serverManageItem));
-        serverManageItem.setOnAction(e -> Controllers.navigate(Controllers.getServerManagePage()));
+        serverManageItem.setOnAction(e -> {
+            org.jackhuang.hmcl.server.ServerRepository.ServerInstance server =
+                    org.jackhuang.hmcl.server.ServerSelection.getSelected();
+            if (server != null) {
+                Controllers.navigate(new org.jackhuang.hmcl.ui.server.ServerPropertiesPage(server.directory()));
+            } else {
+                Controllers.navigate(Controllers.getServerListPage());
+            }
+        });
         if (AnimationUtils.isAnimationEnabled()) {
             serverManageItem.setPrepareAction(Controllers::prepareServerManagePage);
         }

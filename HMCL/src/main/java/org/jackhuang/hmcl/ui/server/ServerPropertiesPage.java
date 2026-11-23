@@ -54,7 +54,17 @@ public final class ServerPropertiesPage extends DecoratorAnimatedPage implements
     public ServerPropertiesPage(Path directory) {
         this.directory = directory;
         getStyleClass().add("gray-background");
-        state.set(State.fromTitle(i18n("server.local.config")));
+        String title = i18n("server.local.config");
+        for (org.jackhuang.hmcl.server.ServerRepository.ServerInstance server
+                : org.jackhuang.hmcl.server.ServerRepository.listInstances()) {
+            if (server.directory().toAbsolutePath().normalize()
+                    .equals(directory.toAbsolutePath().normalize())) {
+                title = server.metadata().type() + " " + server.metadata().gameVersion()
+                        + " - " + i18n("server.local.config");
+                break;
+            }
+        }
+        state.set(State.fromTitle(title));
         loadProperties();
 
         AdvancedListItem basic = item(i18n("server.config.basic"), SVG.SETTINGS, this::showBasic);
@@ -62,9 +72,11 @@ public final class ServerPropertiesPage extends DecoratorAnimatedPage implements
         AdvancedListItem world = item(i18n("server.config.world"), SVG.PUBLIC, this::showWorld);
         AdvancedListItem security = item(i18n("server.config.security"), SVG.PERSON, this::showSecurity);
         AdvancedListItem advanced = item(i18n("server.config.advanced"), SVG.SCRIPT, this::showAdvanced);
+        AdvancedListItem openFolder = item(i18n("button.reveal_dir"), SVG.FOLDER, () ->
+                FXUtils.openFolder(directory));
 
         AdvancedListBox sidebar = new AdvancedListBox();
-        sidebar.add(basic).add(gameplay).add(world).add(security).add(advanced);
+        sidebar.add(basic).add(gameplay).add(world).add(security).add(advanced).add(openFolder);
         getSidebar().add(sidebar);
 
         JFXButton save = FXUtils.newRaisedButton(i18n("button.save"));
