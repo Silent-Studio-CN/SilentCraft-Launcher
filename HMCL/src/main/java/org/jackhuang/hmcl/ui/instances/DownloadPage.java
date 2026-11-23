@@ -375,8 +375,9 @@ public class DownloadPage extends Control implements DecoratorPage {
         /// The dependency represented by this row.
         public final RemoteAddon addon;
 
-        /// Creates a dependency row that opens the addon's download page.
-        DependencyAddonItem(DownloadListPage page, RemoteAddon addon, HMCLGameInstance.Optional instanceReference) {
+        /// Creates a dependency row that opens a nested version dialog.
+        DependencyAddonItem(DownloadListPage page, DownloadPage selfPage,
+                            RemoteAddon addon, HMCLGameInstance.Optional instanceReference) {
             this.addon = addon;
 
             container.setPadding(new Insets(10, 24, 10, 24));
@@ -395,10 +396,14 @@ public class DownloadPage extends Control implements DecoratorPage {
                 case SHADER_PACK -> org.jackhuang.hmcl.ui.download.DownloadPage.FOR_SHADER;
                 default -> null; // Dependencies should not be modpacks, worlds or customized stuff
             };
-            setOnAction((e) -> {
-                fireEvent(new DialogCloseEvent());
-                Controllers.navigate(new DownloadPage(page, addon, instanceReference, callback));
-            });
+            setOnAction((e) -> Task.<RemoteAddon.Version>supplyAsync(() ->
+                            addon.data().loadVersions(selfPage.repository, page.getDownloadProvider())
+                                    .findFirst().orElse(null))
+                    .whenComplete(Schedulers.javafx(), (version, exception) -> {
+                        if (exception == null && version != null) {
+                            Controllers.dialog(new AddonVersion(addon, version, selfPage));
+                        }
+                    }));
             @Nullable AddonProjectInfoRegistry<?> registry = AddonProjectInfoRegistry.getByAddonType(type);
             @Nullable AddonProjectInfo mod = registry != null ? registry.getInfoByCurseForgeId(addon.slug()) : null;
             setTitle(mod != null && I18n.isUseChinese() ? mod.displayName() : addon.title());
@@ -635,7 +640,7 @@ public class DownloadPage extends Control implements DecoratorPage {
                                     hasBroken.set(true);
                                     return;
                                 }
-                                DependencyAddonItem dependencyAddonItem = new DependencyAddonItem(selfPage.page, dep, selfPage.instanceReference);
+                                DependencyAddonItem dependencyAddonItem = new DependencyAddonItem(selfPage.page, selfPage, dep, selfPage.instanceReference);
                                 var listener = FXUtils.onWeakChangeAndOperate(dependenciesList.widthProperty(), d -> FXUtils.setLimitWidth(dependencyAddonItem, d.doubleValue()));
                                 dependencyAddonItem.getProperties().put("DependencyAddonItem.width", listener);
                                 dependencies.get(dependency.getType()).value().add(dependencyAddonItem);
