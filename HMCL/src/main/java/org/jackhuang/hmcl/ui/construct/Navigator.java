@@ -117,6 +117,7 @@ public class Navigator extends TransitionPane {
 
         NavigationEvent navigated = new NavigationEvent(this, node, Navigation.NavigationDirection.PREVIOUS, NavigationEvent.NAVIGATED);
         node.fireEvent(navigated);
+        if (node instanceof PageAware pageAware) pageAware.onPageShown();
 
         Optional.ofNullable(from.getProperties().get(PROPERTY_DIALOG_CLOSE_HANDLER))
                 .ifPresent(handler -> from.removeEventHandler(PageCloseEvent.CLOSE, (EventHandler<PageCloseEvent>) handler));
