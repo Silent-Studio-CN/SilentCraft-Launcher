@@ -111,7 +111,7 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
         }
 
         AdvancedListItem serverListItem = new AdvancedListItem();
-        serverListItem.setLeftIcon(SVG.FORMAT_LIST_BULLETED);
+        serverListItem.setLeftIcon(SVG.HOST);
         serverListItem.setTitle(i18n("server.local.list"));
         serverListItem.setOnAction(e -> Controllers.navigate(Controllers.getServerListPage()));
         if (AnimationUtils.isAnimationEnabled()) {
@@ -224,17 +224,32 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
                 getMainPage().getInstances());
     }
 
+    /// Builds a 20px image icon with the standard sidebar margin.
+    private static javafx.scene.Node serverIcon(org.jackhuang.hmcl.setting.GameInstanceIconType type) {
+        javafx.scene.image.ImageView view = new javafx.scene.image.ImageView(type.getIcon());
+        view.setFitWidth(20);
+        view.setFitHeight(20);
+        view.setPreserveRatio(true);
+        view.setMouseTransparent(true);
+        AdvancedListItem.setMargin(view, AdvancedListItem.LEFT_ICON_MARGIN);
+        return view;
+    }
+
     /// Updates the sidebar title and icon of the most recently downloaded server.
     private void updateServerManageItem(AdvancedListItem item) {
         ServerType type = SettingsManager.settings().getLastServerType();
         String version = SettingsManager.settings().getLastServerVersion();
 
         boolean none = version == null || version.isBlank();
-        item.setLeftIcon(none ? SVG.DRESSER : switch (type) {
-            case PAPER -> SVG.PAPER_LOGO;
-            case SPIGOT -> SVG.FOLDER;
-            default -> SVG.GRASS_BLOCK;
-        });
+        if (none) {
+            item.setLeftIcon(SVG.DRESSER);
+        } else {
+            switch (type) {
+                case PAPER -> item.setLeftGraphic(serverIcon(org.jackhuang.hmcl.setting.GameInstanceIconType.PAPER));
+                case SPIGOT -> item.setLeftIcon(SVG.FOLDER);
+                default -> item.setLeftGraphic(serverIcon(org.jackhuang.hmcl.setting.GameInstanceIconType.GRASS));
+            }
+        }
         item.setTitle(none ? i18n("server.local.none") : type.getDisplayName() + System.lineSeparator() + version);
         item.setSubtitle(none ? i18n("server.local.get") : null);
     }
