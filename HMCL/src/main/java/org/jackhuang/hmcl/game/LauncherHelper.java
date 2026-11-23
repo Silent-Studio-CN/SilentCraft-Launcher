@@ -852,6 +852,7 @@ public final class LauncherHelper {
         private final LaunchOptions launchOptions;
         private ManagedProcess process;
         private volatile boolean lwjgl;
+        private volatile boolean vulkanReported;
         private LogWindow logWindow;
         private final boolean detectWindow;
         private final CircularArrayList<Log> logs;
@@ -981,6 +982,11 @@ public final class LauncherHelper {
                 System.out.println(log);
 
             log = StringUtils.parseEscapeSequence(log);
+            if (!vulkanReported && org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(log)) {
+                vulkanReported = true;
+                LOG.info("Detected Vulkan failure in game log");
+                runLater(() -> new org.jackhuang.hmcl.ui.VulkanErrorDialog(gameInstance).show());
+            }
             if (forbiddenAccessToken != null)
                 log = log.replace(forbiddenAccessToken, "<access token>");
 
@@ -1018,6 +1024,7 @@ public final class LauncherHelper {
 
         @Override
         public void onExit(int exitCode, ExitType exitType) {
+            LOG.info("Minecraft process exited with code " + exitCode + ", type " + exitType);
             if (showLogs) {
                 logBuffer.add(new Log(String.format("[%s] [HMCL ProcessListener] Minecraft exit with code %d(0x%x), type is %s.", TIME_FORMATTER.format(Instant.now()), exitCode, exitCode, exitType), Log4jLevel.INFO));
                 submitLogThread.interrupt();
@@ -1048,7 +1055,8 @@ public final class LauncherHelper {
             for (Log log : logs) {
                 gameLog.append(log.getLog()).append('\n');
             }
-            boolean vulkanCrash = org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(gameLog.toString());
+            boolean vulkanCrash = !vulkanReported
+                    && org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(gameLog.toString());
             if (exitType != ExitType.NORMAL || vulkanCrash) {
                 gameInstance.markLaunchedAbnormally();
                 if (vulkanCrash) {
