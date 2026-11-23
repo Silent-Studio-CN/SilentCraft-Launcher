@@ -202,19 +202,6 @@ public final class ServerRepository {
                 || name.startsWith("world");
     }
 
-    /// Returns the first jar file in a server directory, or null when none exists.
-    private static @Nullable String findJar(Path directory) {
-        try (Stream<Path> files = Files.list(directory)) {
-            return files.filter(Files::isRegularFile)
-                    .map(path -> path.getFileName().toString())
-                    .filter(name -> name.endsWith(".jar"))
-                    .findFirst()
-                    .orElse(null);
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
     /// A downloaded server directory.
     public record ServerInstance(Path directory, ServerMetadata metadata) {
     }
