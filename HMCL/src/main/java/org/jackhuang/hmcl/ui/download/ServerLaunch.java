@@ -9,6 +9,7 @@ import org.jackhuang.hmcl.setting.DownloadProviders;
 import org.jackhuang.hmcl.task.GetTask;
 import org.jackhuang.hmcl.task.Schedulers;
 import org.jackhuang.hmcl.task.Task;
+import org.jackhuang.hmcl.server.ServerRepository;
 import org.jackhuang.hmcl.ui.Controllers;
 import org.jackhuang.hmcl.ui.construct.MessageDialogPane;
 import org.jackhuang.hmcl.ui.main.JavaDownloadDialog;
@@ -27,6 +28,31 @@ import static org.jackhuang.hmcl.util.logging.Logger.LOG;
 /// Resolves the Java runtime required by a server version and starts the server.
 public final class ServerLaunch {
     private ServerLaunch() {
+    }
+
+    /// Starts a downloaded server directly with the current JVM.
+    public static void launch(ServerRepository.ServerInstance server) {
+        Path directory = server.directory();
+        Path jar = directory.resolve(server.metadata().jar());
+        try {
+            Path logDirectory = directory.resolve("logs");
+            Files.createDirectories(logDirectory);
+            Path logFile = logDirectory.resolve("hmcl-server.log");
+
+            ProcessBuilder builder = new ProcessBuilder(
+                    Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+                    "-Xmx2G", "-jar", jar.toString(), "nogui");
+            builder.directory(directory.toFile());
+            builder.redirectErrorStream(true);
+            builder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
+            builder.start();
+
+            Controllers.showToast(i18n("server.run.started", directory));
+        } catch (Exception e) {
+            LOG.warning("Failed to start server", e);
+            Controllers.dialog(org.jackhuang.hmcl.util.StringUtils.getStackTrace(e),
+                    i18n("server.run.failed"), MessageDialogPane.MessageType.ERROR);
+        }
     }
 
     /// Asks the user whether to start the downloaded server, then checks its Java runtime.

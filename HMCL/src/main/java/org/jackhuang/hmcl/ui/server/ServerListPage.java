@@ -405,7 +405,10 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
             }
 
             radio.setSelected(list.selected.get() == item);
-            radio.setOnAction(event -> list.selected.set(item));
+            radio.setOnAction(event -> {
+                list.selected.set(item);
+                org.jackhuang.hmcl.server.ServerSelection.select(item.instance());
+            });
 
             org.jackhuang.hmcl.setting.GameInstanceIconType iconType =
                     "Paper".equalsIgnoreCase(item.instance().metadata().type())
@@ -435,6 +438,7 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
             content.setOnMouseClicked(event -> {
                 if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
                     list.selected.set(item);
+                    org.jackhuang.hmcl.server.ServerSelection.select(item.instance());
                 } else if (event.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
                     showMenu(item, content);
                 }

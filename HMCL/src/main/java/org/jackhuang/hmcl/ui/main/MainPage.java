@@ -32,6 +32,8 @@ import org.jackhuang.hmcl.Metadata;
 import org.jackhuang.hmcl.download.DownloadProvider;
 import org.jackhuang.hmcl.game.*;
 import org.jackhuang.hmcl.setting.DownloadProviders;
+import org.jackhuang.hmcl.server.ServerRepository;
+import org.jackhuang.hmcl.server.ServerSelection;
 import org.jackhuang.hmcl.setting.GameDirectoryManager;
 import org.jackhuang.hmcl.task.Schedulers;
 import org.jackhuang.hmcl.task.Task;
@@ -46,6 +48,7 @@ import org.jackhuang.hmcl.ui.construct.RipplerContainer;
 import org.jackhuang.hmcl.ui.construct.TwoLineListItem;
 import org.jackhuang.hmcl.ui.decorator.DecoratorPage;
 import org.jackhuang.hmcl.ui.instances.GameListPopupMenu;
+import org.jackhuang.hmcl.ui.download.ServerLaunch;
 import org.jackhuang.hmcl.ui.instances.Instances;
 import org.jackhuang.hmcl.upgrade.RemoteVersion;
 import org.jackhuang.hmcl.upgrade.UpdateChecker;
@@ -299,8 +302,50 @@ public final class MainPage extends StackPane implements DecoratorPage {
             launchPane.getChildren().setAll(launchButton, menuButton);
         }
 
-        getChildren().addAll(updatePane, launchPane);
+        HBox serverLaunchPane = new HBox();
+        serverLaunchPane.getStyleClass().add("launch-pane");
+        StackPane.setAlignment(serverLaunchPane, Pos.BOTTOM_LEFT);
+        {
+            JFXButton serverLaunchButton = new JFXButton();
+            serverLaunchButton.getStyleClass().add("launch-button");
 
+            VBox graphic = new VBox();
+            graphic.setAlignment(Pos.CENTER);
+            Label title = new Label(i18n("server.launch"));
+            title.setStyle("-fx-font-size: 16px;");
+            Label current = new Label();
+            current.setStyle("-fx-font-size: 12px;");
+            FXUtils.onChangeAndOperate(ServerSelection.selectedProperty(), server -> {
+                if (server == null) {
+                    current.setText(i18n("server.launch.none"));
+                } else {
+                    ServerRepository.ServerMetadata metadata = server.metadata();
+                    current.setText(metadata.type() + " " + metadata.gameVersion() + " " + metadata.build());
+                }
+            });
+            graphic.getChildren().setAll(title, current);
+            serverLaunchButton.setGraphic(graphic);
+            FXUtils.setOnActionWithCooldown(serverLaunchButton, this::launchServer);
+            serverLaunchPane.getChildren().setAll(serverLaunchButton);
+        }
+
+        getChildren().addAll(updatePane, launchPane, serverLaunchPane);
+
+    }
+
+    /// Starts the selected server, falling back to the first server of the current root.
+    private void launchServer() {
+        ServerRepository.ServerInstance server = ServerSelection.getSelected();
+        if (server == null) {
+            java.util.List<ServerRepository.ServerInstance> instances =
+                    ServerRepository.listInstances(ServerRepository.rootDirectory());
+            if (instances.isEmpty()) {
+                Controllers.navigate(Controllers.getServerListPage());
+                return;
+            }
+            server = instances.get(0);
+        }
+        ServerLaunch.launch(server);
     }
 
     private void showUpdateDialog(boolean show) {
