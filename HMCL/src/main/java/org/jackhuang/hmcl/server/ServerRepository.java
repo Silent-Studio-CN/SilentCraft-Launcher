@@ -133,44 +133,56 @@ public final class ServerRepository {
         java.util.Set<Path> seen = new java.util.HashSet<>();
 
         for (Path root : getDirectories()) {
-            if (!Files.isDirectory(root)) {
-                continue;
-            }
-
-            try (Stream<Path> stream = Files.list(root)) {
-                stream.filter(Files::isDirectory).forEach(directory -> {
-                    if (!seen.add(directory.toAbsolutePath().normalize()) || isSupportDirectory(directory)) {
-                        return;
-                    }
-
-                    Path metadataFile = directory.resolve(METADATA_FILE);
-                    if (Files.isRegularFile(metadataFile)) {
-                        try {
-                            ServerMetadata metadata = JsonUtils.fromJsonFile(metadataFile, ServerMetadata.class);
-                            if (metadata != null) {
-                                instances.add(new ServerInstance(directory, metadata));
-                                return;
-                            }
-                        } catch (Exception ignored) {
-                        }
-                    }
-
-                    // Older downloads predate server.json; inspect the jar instead of trusting the folder name.
-                    ServerJarInspector.Info info = ServerJarInspector.inspect(directory);
-                    if (info != null) {
-                        instances.add(new ServerInstance(directory, new ServerMetadata(
-                                info.type(), info.gameVersion(),
-                                info.build() == null ? "" : info.build(),
-                                info.jar(), info.channel())));
-                    }
-                });
-            } catch (IOException ignored) {
-            }
-
-            // The root itself may be a server directory containing several version jars.
-            addRootJars(root, instances);
+            scanRoot(root, instances, seen);
         }
         return instances;
+    }
+
+    /// Lists instances under a single root, used when one sidebar directory is selected.
+    public static List<ServerInstance> listInstances(Path root) {
+        List<ServerInstance> instances = new ArrayList<>();
+        scanRoot(root, instances, new java.util.HashSet<>());
+        return instances;
+    }
+
+    /// Scans one root directory and its direct server subdirectories.
+    private static void scanRoot(Path root, List<ServerInstance> instances, java.util.Set<Path> seen) {
+        if (!Files.isDirectory(root)) {
+            return;
+        }
+
+        try (Stream<Path> stream = Files.list(root)) {
+            stream.filter(Files::isDirectory).forEach(directory -> {
+                if (!seen.add(directory.toAbsolutePath().normalize()) || isSupportDirectory(directory)) {
+                    return;
+                }
+
+                Path metadataFile = directory.resolve(METADATA_FILE);
+                if (Files.isRegularFile(metadataFile)) {
+                    try {
+                        ServerMetadata metadata = JsonUtils.fromJsonFile(metadataFile, ServerMetadata.class);
+                        if (metadata != null) {
+                            instances.add(new ServerInstance(directory, metadata));
+                            return;
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+
+                // Older downloads predate server.json; inspect the jar instead of trusting the folder name.
+                ServerJarInspector.Info info = ServerJarInspector.inspect(directory);
+                if (info != null) {
+                    instances.add(new ServerInstance(directory, new ServerMetadata(
+                            info.type(), info.gameVersion(),
+                            info.build() == null ? "" : info.build(),
+                            info.jar(), info.channel())));
+                }
+            });
+        } catch (IOException ignored) {
+        }
+
+        // The root itself may be a server directory containing several version jars.
+        addRootJars(root, instances);
     }
 
     /// Adds one entry per version jar found directly under a root directory.

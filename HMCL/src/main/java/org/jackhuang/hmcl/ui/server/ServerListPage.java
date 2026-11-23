@@ -128,7 +128,7 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
             item.setOnAction(event -> {
                 SettingsManager.settings().setServerDirectory(root.toString());
                 refreshSidebar();
-                list.refreshList();
+                list.setRoot(root);
             });
             item.setRightAction(SVG.CLOSE, () -> removeDirectory(root));
             rootItems.getChildren().add(item);
@@ -146,24 +146,24 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
         Path selected = Controllers.showDialog(chooser);
         if (selected != null) {
             ServerRepository.addDirectory(selected);
+            SettingsManager.settings().setServerDirectory(selected.toString());
             refreshSidebar();
-            list.refreshList();
+            list.setRoot(selected);
         }
     }
 
     /// Removes a server root; yes deletes its files, no only removes the HMCL record.
     private void removeDirectory(Path root) {
         Controllers.confirm(i18n("server.local.remove_directory.message"), i18n("server.local.remove_directory"),
-                () -> {
-                    ServerRepository.removeDirectory(root, true);
-                    refreshSidebar();
-                    list.refreshList();
-                },
-                () -> {
-                    ServerRepository.removeDirectory(root, false);
-                    refreshSidebar();
-                    list.refreshList();
-                });
+                () -> removeRoot(root, true),
+                () -> removeRoot(root, false));
+    }
+
+    /// Removes a root and refreshes the visible list.
+    private void removeRoot(Path root, boolean deleteFiles) {
+        ServerRepository.removeDirectory(root, deleteFiles);
+        refreshSidebar();
+        list.setRoot(ServerRepository.rootDirectory());
     }
 
     /// One server entry with display properties derived from its metadata.
@@ -212,6 +212,15 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
         /// Currently selected entry, if any.
         private final ObjectProperty<@Nullable ServerItem> selected = new SimpleObjectProperty<>();
 
+        /// Root shown by this list.
+        private Path root = ServerRepository.rootDirectory();
+
+        /// Switches the displayed root and reloads its instances.
+        private void setRoot(Path root) {
+            this.root = root;
+            refreshList();
+        }
+
         private ServerList() {
             setItems(filteredList);
             setOnFailedAction(event -> Controllers.navigate(new DownloadPage()));
@@ -223,7 +232,7 @@ public final class ServerListPage extends DecoratorAnimatedPage implements Decor
             setLoading(true);
             setFailedReason(null);
 
-            List<ServerRepository.ServerInstance> instances = ServerRepository.listInstances();
+            List<ServerRepository.ServerInstance> instances = ServerRepository.listInstances(root);
             sourceList.setAll(instances.stream().map(ServerItem::new).toList());
 
             if (instances.isEmpty()) {
