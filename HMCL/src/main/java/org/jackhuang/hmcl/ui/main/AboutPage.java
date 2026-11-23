@@ -65,8 +65,8 @@ public final class AboutPage extends SpinnerPane {
             var hmclLink = LineButton.createExternalLinkButton("https://github.com/HMCL-dev/HMCL");
             hmclLink.setLargeTitle(true);
             hmclLink.setTitle("HMCL");
-            hmclLink.setSubtitle(i18n("about.upstream.statement"));
-            hmclLink.setLeading(SVG.OPEN_IN_NEW.createIcon(32));
+            hmclLink.setSubtitle(i18n("about.recommend_hmcl"));
+            hmclLink.setLeading(FXUtils.newBuiltinImage("/assets/img/hmcl.png"));
 
             about.getContent().setAll(launcher, hmclLink);
         }
