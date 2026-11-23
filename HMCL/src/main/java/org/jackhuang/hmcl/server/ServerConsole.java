@@ -41,6 +41,12 @@ public final class ServerConsole {
     /// Writer used to send commands to the server.
     private static @Nullable BufferedWriter input;
 
+    /// Recent console lines used for crash classification.
+    private static final java.util.Deque<String> recent = new java.util.ArrayDeque<>();
+
+    /// Whether the current process is being stopped by the user.
+    private static volatile boolean stopping;
+
     private ServerConsole() {
     }
 
@@ -99,6 +105,8 @@ public final class ServerConsole {
     public static void start(ServerRepository.ServerInstance server) {
         stop();
 
+        stopping = false;
+        recent.clear();
         Path directory = server.directory();
         Path jar = directory.resolve(server.metadata().jar());
         try {
@@ -107,8 +115,8 @@ public final class ServerConsole {
             Path logFile = logDirectory.resolve("hmcl-server.log");
 
             int requiredJava = requiredJava(directory);
-            Path java = findJava(requiredJava);
-            if (java == null) {
+            Path javaBinary = findJava(requiredJava);
+            if (javaBinary == null) {
                 org.jackhuang.hmcl.ui.Controllers.dialog(
                         i18n("server.java.missing.message", requiredJava),
                         i18n("server.java.missing.title"),
@@ -117,7 +125,7 @@ public final class ServerConsole {
             }
 
             ProcessBuilder builder = new ProcessBuilder(
-                    java.toString(), "-Xmx2G", "-jar", jar.toString(), "nogui");
+                    javaBinary.toString(), "-Xmx2G", "-jar", jar.toString(), "nogui");
             builder.directory(directory.toFile());
             builder.redirectErrorStream(true);
 
@@ -134,6 +142,12 @@ public final class ServerConsole {
                         String value = line;
                         Files.writeString(logFile, value + System.lineSeparator(),
                                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                        synchronized (recent) {
+                            recent.addLast(value);
+                            while (recent.size() > 200) {
+                                recent.removeFirst();
+                            }
+                        }
                         Platform.runLater(() -> {
                             lines.add(value);
                             if (lines.size() > MAX_LINES) {
@@ -145,6 +159,18 @@ public final class ServerConsole {
                     LOG.warning("Server console reader stopped", e);
                 } finally {
                     Platform.runLater(() -> running.set(false));
+                    try {
+                        int exitCode = started.waitFor();
+                        if (!stopping) {
+                            java.util.List<String> snapshot;
+                            synchronized (recent) {
+                                snapshot = java.util.List.copyOf(recent);
+                            }
+                            Platform.runLater(() -> ServerErrorReporter.report(snapshot, exitCode, logFile));
+                        }
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             }, "server-console").start();
         } catch (Exception e) {
@@ -168,6 +194,7 @@ public final class ServerConsole {
 
     /// Stops the running server.
     public static void stop() {
+        stopping = true;
         if (process != null) {
             process.destroy();
             process = null;
