@@ -21,14 +21,14 @@ public final class Metadata {
     private Metadata() {
     }
 
-    public static final String NAME = "HMCL";
-    public static final String FULL_NAME = "Hello Minecraft! Launcher";
+    public static final String NAME = "SilentCraft";
+    public static final String FULL_NAME = "SilentCraft Launcher";
     public static final String VERSION = System.getProperty("hmcl.version.override", JarUtils.getAttribute("hmcl.version", "@develop@"));
 
     /// Explicit Application User Model ID used for Windows taskbar grouping and pinning.
-    public static final String WINDOWS_APP_USER_MODEL_ID = "org.jackhuang.hmcl";
+    public static final String WINDOWS_APP_USER_MODEL_ID = "cn.silentstudio.silentcraft";
 
-    public static final String TITLE = NAME + " " + VERSION;
+    public static final String TITLE = FULL_NAME + " " + VERSION;
 
     /// Whether the build metadata identifies this launcher as an official build.
     public static final boolean OFFICIAL_BUILD = Boolean.parseBoolean(JarUtils.getAttribute("hmcl.official", "false"));
@@ -37,10 +37,10 @@ public final class Metadata {
     public static final int MINIMUM_SUPPORTED_JAVA_VERSION = 17;
     public static final int RECOMMENDED_JAVA_VERSION = 21;
 
-    public static final String PUBLISH_URL = "https://hmcl.huangyuhui.net";
-    public static final String REPOSITORY_URL = "https://github.com/HMCL-dev/HMCL";
+    public static final String PUBLISH_URL = "https://github.com/Silent-Studio-CN/SilentCraft-Launcher";
+    public static final String REPOSITORY_URL = "https://github.com/Silent-Studio-CN/SilentCraft-Launcher";
     public static final String HMCL_UPDATE_URL = System.getProperty("hmcl.update_source.override", PUBLISH_URL + "/api/update_link");
-    public static final String MANUAL_UPDATE_URL = "https://github.com/HMCL-dev/HMCL/releases";
+    public static final String MANUAL_UPDATE_URL = "https://github.com/Silent-Studio-CN/SilentCraft-Launcher/releases";
 
     public static final String DOCS_URL = "https://docs.hmcl.net";
     public static final String CONTACT_URL = DOCS_URL + "/help.html";
