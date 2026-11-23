@@ -31,6 +31,8 @@ public final class EntryPoint {
 
     /// Initializes TLS protection before downloading dependencies and starting the launcher.
     public static void main(String[] args) {
+        relaunchWithDockNameIfNeeded(args);
+
         System.getProperties().putIfAbsent("java.net.useSystemProxies", "true");
         System.getProperties().putIfAbsent("javafx.autoproxy.disable", "true");
         System.getProperties().putIfAbsent("http.agent", "HMCL/" + Metadata.VERSION);
@@ -43,6 +45,7 @@ public final class EntryPoint {
 
         if (SystemInfo.CURRENT_OS == OperatingSystem.MACOS) {
             System.getProperties().putIfAbsent("apple.awt.application.appearance", "system");
+            System.getProperties().putIfAbsent("apple.awt.application.name", Metadata.FULL_NAME);
             if (!isInsideMacAppBundle())
                 initIcon();
         }
@@ -53,6 +56,43 @@ public final class EntryPoint {
         enableUnsafeMemoryAccess();
 
         Launcher.main(args);
+    }
+
+    /// On macOS, a plain java -jar launch uses the main class name in the menu bar.
+    /// Relaunch once with -Xdock:name so the application menu shows the launcher name.
+    private static void relaunchWithDockNameIfNeeded(String[] args) {
+        if (SystemInfo.CURRENT_OS != OperatingSystem.MACOS
+                || System.getProperty("silentcraft.dockName") != null
+                || isInsideMacAppBundle()) {
+            return;
+        }
+
+        try {
+            Path jar = Path.of(EntryPoint.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            if (!jar.toString().endsWith(".jar") || Files.isDirectory(jar)) {
+                return;
+            }
+            for (String arg : args) {
+                if ("--apply-to".equals(arg)) {
+                    return;
+                }
+            }
+
+            String javaExecutable = Path.of(System.getProperty("java.home"), "bin", "java").toString();
+            java.util.List<String> command = new java.util.ArrayList<>();
+            command.add(javaExecutable);
+            command.add("-Xdock:name=" + Metadata.FULL_NAME);
+            command.add("-Dsilentcraft.dockName=1");
+            command.addAll(java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments());
+            command.add("-jar");
+            command.add(jar.toString());
+            command.addAll(java.util.List.of(args));
+
+            new ProcessBuilder(command).inheritIO().start();
+            System.exit(0);
+        } catch (Throwable e) {
+            LOG.warning("Failed to relaunch with macOS dock name", e);
+        }
     }
 
     public static void exit(int exitCode) {
