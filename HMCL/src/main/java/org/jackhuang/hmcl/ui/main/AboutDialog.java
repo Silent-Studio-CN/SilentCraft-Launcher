@@ -24,7 +24,7 @@ public final class AboutDialog {
 
     /// Shows the About window.
     public static void show() {
-        Stage stage = new Stage(StageStyle.UTILITY);
+        Stage stage = new Stage(StageStyle.UNDECORATED);
         stage.setTitle(Metadata.FULL_NAME);
         stage.setResizable(false);
 
@@ -54,6 +54,7 @@ public final class AboutDialog {
         root.setPadding(new Insets(24));
         root.setPrefWidth(360);
         root.getStyleClass().add("gray-background");
+        root.setStyle("-fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: rgba(0,0,0,0.15);");
 
         Scene scene = new Scene(root);
         StyleSheets.init(scene);
