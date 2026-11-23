@@ -42,14 +42,17 @@ public final class AboutDialog {
         Label version = new Label(i18n("about.based_on_version", "3.18"));
         version.getStyleClass().add("subtitle");
 
-        Hyperlink ownGithub = new Hyperlink("GitHub");
+        Hyperlink ownGithub = new Hyperlink(i18n("about.visit_our_github.link"));
         ownGithub.setOnAction(event -> FXUtils.openLink(Metadata.REPOSITORY_URL));
-        HBox ownLine = new HBox(4, new Label(i18n("about.visit_our_github")), ownGithub);
+        HBox ownLine = new HBox(0, new Label(i18n("about.visit_our_github.prefix")), ownGithub);
         ownLine.setAlignment(Pos.CENTER);
 
-        Hyperlink hmclGithub = new Hyperlink("HMCL GitHub");
+        Hyperlink hmclGithub = new Hyperlink(i18n("about.recommend_hmcl.link"));
         hmclGithub.setOnAction(event -> FXUtils.openLink("https://github.com/HMCL-dev/HMCL"));
-        HBox hmclLine = new HBox(4, new Label(i18n("about.recommend_hmcl")), hmclGithub);
+        HBox hmclLine = new HBox(0,
+                new Label(i18n("about.recommend_hmcl.prefix")),
+                hmclGithub,
+                new Label(i18n("about.recommend_hmcl.suffix")));
         hmclLine.setAlignment(Pos.CENTER);
 
         Label copyright = new Label("Copyright (C) 2013-2026 The HMCL Authors\nCopyright (C) 2026 SilentStudio");
