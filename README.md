@@ -29,10 +29,9 @@ SilentCraft Launcher 是一个基于 [HMCL](https://github.com/HMCL-dev/HMCL) �
 
 ### HMCL 上游
 
-本分支基于 HMCL，以下为上游贡献者（按 HMCL 仓库顺序）：
+[![HMCL contributors](https://contrib.rocks/image?repo=HMCL-dev/HMCL)](https://github.com/HMCL-dev/HMCL/graphs/contributors)
 
-<details>
-<summary>全部 139 位</summary>
+共 139 位，按 HMCL 仓库顺序：
 
 @huanghongxun @Glavo @yushijinhun @CiiLu @zkitefly @3gf8jv4dv @burningtnt @KSSJW
 @ToobLac @Wulian233 @evilwk @neveler @Mine-diamond @fishdry1000 @Calboot @pynickle
@@ -52,8 +51,6 @@ SilentCraft Launcher 是一个基于 [HMCL](https://github.com/HMCL-dev/HMCL) �
 @Chihsiao @onion108 @Rei-Hatada @mzdluo123 @outloudvi @paladini-maker @mcendu @NWMA-FYWF
 @Mythologyli @MovTery @mikelei8291 @Krasjet @mvanhorn @luochen1990 @Dobby233Liu @Kylepoops
 @zyxkad @KiteAB @Szizoid
-
-</details>
 
 ### SilentCraft
 
