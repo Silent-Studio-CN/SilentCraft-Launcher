@@ -1044,15 +1044,16 @@ public final class LauncherHelper {
                 }
             }
 
-            if (exitType != ExitType.NORMAL) {
+            StringBuilder gameLog = new StringBuilder();
+            for (Log log : logs) {
+                gameLog.append(log.getLog()).append('\n');
+            }
+            boolean vulkanCrash = org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(gameLog.toString());
+            if (exitType != ExitType.NORMAL || vulkanCrash) {
                 gameInstance.markLaunchedAbnormally();
-                StringBuilder gameLog = new StringBuilder();
-                for (Log log : logs) {
-                    gameLog.append(log.getLog()).append('\n');
-                }
-                if (org.jackhuang.hmcl.ui.VulkanErrorDialog.matches(gameLog.toString())) {
+                if (vulkanCrash) {
                     runLater(() -> new org.jackhuang.hmcl.ui.VulkanErrorDialog(gameInstance).show());
-                } else {
+                } else if (exitType != ExitType.NORMAL) {
                     runLater(() -> new GameCrashWindow(process, exitType, gameInstance, launchOptions, logs).show());
                 }
             }

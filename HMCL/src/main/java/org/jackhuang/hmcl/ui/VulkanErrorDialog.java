@@ -42,6 +42,13 @@ public final class VulkanErrorDialog {
         this.instance = instance;
     }
 
+    /// Returns whether the log contains a real Vulkan failure, not just normal backend selection.
+    public static boolean matchesError(String text) {
+        return text.contains("VK_ERROR") || text.contains("VulkanCommandEncoder")
+                || text.contains("VK semaphore") || text.contains("Failed to create Vulkan")
+                || text.contains("Device lost") || text.contains("vkCreate") || text.contains("vkQueue");
+    }
+
     /// Returns whether the log contains a Vulkan crash signature.
     public static boolean matches(String text) {
         return text.contains("Vulkan") || text.contains("VK_ERROR") || text.contains("MoltenVK")
