@@ -346,6 +346,7 @@ public final class MainPage extends StackPane implements DecoratorPage {
             server = instances.get(0);
         }
         ServerLaunch.launch(server);
+        Controllers.navigate(new org.jackhuang.hmcl.ui.server.ServerManagePage(server));
     }
 
     private void showUpdateDialog(boolean show) {

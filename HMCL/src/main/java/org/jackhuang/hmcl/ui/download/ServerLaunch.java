@@ -32,27 +32,7 @@ public final class ServerLaunch {
 
     /// Starts a downloaded server directly with the current JVM.
     public static void launch(ServerRepository.ServerInstance server) {
-        Path directory = server.directory();
-        Path jar = directory.resolve(server.metadata().jar());
-        try {
-            Path logDirectory = directory.resolve("logs");
-            Files.createDirectories(logDirectory);
-            Path logFile = logDirectory.resolve("hmcl-server.log");
-
-            ProcessBuilder builder = new ProcessBuilder(
-                    Path.of(System.getProperty("java.home"), "bin", "java").toString(),
-                    "-Xmx2G", "-jar", jar.toString(), "nogui");
-            builder.directory(directory.toFile());
-            builder.redirectErrorStream(true);
-            builder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
-            builder.start();
-
-            Controllers.showToast(i18n("server.run.started", directory));
-        } catch (Exception e) {
-            LOG.warning("Failed to start server", e);
-            Controllers.dialog(org.jackhuang.hmcl.util.StringUtils.getStackTrace(e),
-                    i18n("server.run.failed"), MessageDialogPane.MessageType.ERROR);
-        }
+        org.jackhuang.hmcl.server.ServerConsole.start(server);
     }
 
     /// Asks the user whether to start the downloaded server, then checks its Java runtime.
