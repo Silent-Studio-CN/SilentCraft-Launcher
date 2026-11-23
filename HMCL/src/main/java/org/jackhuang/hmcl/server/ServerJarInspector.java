@@ -24,6 +24,8 @@ public final class ServerJarInspector {
     /// Minecraft version and build pattern used by Paper and Spigot artifact names.
     private static final Pattern PAPER_NAME = Pattern.compile("^paper-(.+?)-(\\d+)\\.jar$", Pattern.CASE_INSENSITIVE);
     private static final Pattern SPIGOT_NAME = Pattern.compile("^spigot-(.+?)-(\\d+)\\.jar$", Pattern.CASE_INSENSITIVE);
+    /// Vanilla artifact names such as server-1.21.4.jar or minecraft_server.1.12.2.jar.
+    private static final Pattern VANILLA_NAME = Pattern.compile("^(?:server|minecraft_server)[.-](.+)\\.jar$", Pattern.CASE_INSENSITIVE);
     private static final Pattern VERSION_JSON_ID = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"");
 
     private ServerJarInspector() {
@@ -49,7 +51,11 @@ public final class ServerJarInspector {
 
         Matcher paper = PAPER_NAME.matcher(fileName);
         Matcher spigot = SPIGOT_NAME.matcher(fileName);
-        if (paper.matches()) {
+        Matcher vanilla = VANILLA_NAME.matcher(fileName);
+        if (vanilla.matches()) {
+            type = "Vanilla";
+            gameVersion = vanilla.group(1);
+        } else if (paper.matches()) {
             type = "Paper";
             gameVersion = paper.group(1);
             build = paper.group(2);
@@ -71,6 +77,20 @@ public final class ServerJarInspector {
                     String implementationVersion = manifest.getMainAttributes().getValue("Implementation-Version");
                     if (gameVersion == null && implementationVersion != null) {
                         gameVersion = implementationVersion;
+                    }
+                }
+            }
+
+            // Vanilla bundles list the Minecraft version in META-INF/versions.list.
+            ZipEntry versionsList = zip.getEntry("META-INF/versions.list");
+            if (versionsList != null && gameVersion == null) {
+                try (InputStream in = zip.getInputStream(versionsList)) {
+                    for (String line : new String(in.readAllBytes(), StandardCharsets.UTF_8).split("\\R")) {
+                        String[] parts = line.split("\\t");
+                        if (parts.length >= 2 && !parts[1].isBlank()) {
+                            gameVersion = parts[1];
+                            break;
+                        }
                     }
                 }
             }
