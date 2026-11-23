@@ -1046,7 +1046,15 @@ public final class LauncherHelper {
 
             if (exitType != ExitType.NORMAL) {
                 gameInstance.markLaunchedAbnormally();
-                runLater(() -> new GameCrashWindow(process, exitType, gameInstance, launchOptions, logs).show());
+                StringBuilder gameLog = new StringBuilder();
+                for (Log log : logs) {
+                    gameLog.append(log.getLog()).append('\n');
+                }
+                if (org.jackhuang.hmcl.ui.VulkanErrorDialog.matches(gameLog.toString())) {
+                    runLater(() -> new org.jackhuang.hmcl.ui.VulkanErrorDialog(gameInstance).show());
+                } else {
+                    runLater(() -> new GameCrashWindow(process, exitType, gameInstance, launchOptions, logs).show());
+                }
             }
 
             checkExit();
