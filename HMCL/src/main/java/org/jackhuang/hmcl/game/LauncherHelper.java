@@ -983,7 +983,7 @@ public final class LauncherHelper {
                 System.out.println(log);
 
             log = StringUtils.parseEscapeSequence(log);
-            if (!vulkanReported) {
+            if (!vulkanReported && !org.jackhuang.hmcl.ui.VulkanErrorDialog.isInstalled(gameInstance)) {
                 vulkanProbe.append(log).append('\n');
                 if (vulkanProbe.length() > 16000) {
                     vulkanProbe.delete(0, vulkanProbe.length() - 16000);
@@ -1063,6 +1063,7 @@ public final class LauncherHelper {
                 gameLog.append(log.getLog()).append('\n');
             }
             boolean vulkanCrash = !vulkanReported
+                    && !org.jackhuang.hmcl.ui.VulkanErrorDialog.isInstalled(gameInstance)
                     && org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(gameLog.toString());
             if (exitType != ExitType.NORMAL || vulkanCrash) {
                 gameInstance.markLaunchedAbnormally();

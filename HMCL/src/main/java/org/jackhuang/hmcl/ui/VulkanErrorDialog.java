@@ -42,6 +42,20 @@ public final class VulkanErrorDialog {
         this.instance = instance;
     }
 
+    /// Returns whether NeoLoading-Vulkan-Fix is already installed in this instance.
+    public static boolean isInstalled(HMCLGameInstance instance) {
+        Path mods = instance.getRunDirectory().resolve("mods");
+        if (!Files.isDirectory(mods)) {
+            return false;
+        }
+        try (var stream = Files.list(mods)) {
+            return stream.anyMatch(path -> path.getFileName().toString()
+                    .toLowerCase(java.util.Locale.ROOT).startsWith("neoloadingvulkanfix"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     /// Returns whether the log contains a real Vulkan failure, not just normal backend selection.
     public static boolean matchesError(String text) {
         // Unambiguous Vulkan/JVM stack markers.
