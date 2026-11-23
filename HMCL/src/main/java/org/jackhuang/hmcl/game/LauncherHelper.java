@@ -854,6 +854,8 @@ public final class LauncherHelper {
         private volatile boolean lwjgl;
         private volatile boolean vulkanReported;
         private final StringBuilder vulkanProbe = new StringBuilder();
+        private final StringBuilder modProbe = new StringBuilder();
+        private volatile boolean modMismatchReported;
         private LogWindow logWindow;
         private final boolean detectWindow;
         private final CircularArrayList<Log> logs;
@@ -983,6 +985,19 @@ public final class LauncherHelper {
                 System.out.println(log);
 
             log = StringUtils.parseEscapeSequence(log);
+            if (!modMismatchReported) {
+                modProbe.append(log).append('\n');
+                if (modProbe.length() > 16000) {
+                    modProbe.delete(0, modProbe.length() - 16000);
+                }
+                ModMismatchDetector.Mismatch mismatch = ModMismatchDetector.detect(modProbe.toString());
+                if (mismatch != null) {
+                    modMismatchReported = true;
+                    LOG.info("Detected mod version mismatch: " + mismatch.mod());
+                    runLater(() -> ModMismatchDetector.show(gameInstance, mismatch));
+                }
+            }
+
             if (!vulkanReported && !org.jackhuang.hmcl.ui.VulkanErrorDialog.isInstalled(gameInstance)) {
                 vulkanProbe.append(log).append('\n');
                 if (vulkanProbe.length() > 16000) {
