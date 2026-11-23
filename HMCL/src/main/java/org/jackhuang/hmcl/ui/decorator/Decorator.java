@@ -179,6 +179,12 @@ public final class Decorator {
     /// The last computed top inset target, used to avoid redundant layout passes.
     private double lastTopInset = SHADOW_SIZE;
 
+    /// Current left/right shadow insets, collapsed when the window touches a screen edge.
+    private double currentLeftInset = SHADOW_SIZE;
+    private double currentRightInset = SHADOW_SIZE;
+    private double lastLeftInset = SHADOW_SIZE;
+    private double lastRightInset = SHADOW_SIZE;
+
     /// Recomputes the top-flush state whenever the native window geometry changes.
     private final javafx.beans.value.ChangeListener<Number> stagePositionListener = (observable, oldValue, newValue) -> updateTopFlush();
 
@@ -331,7 +337,7 @@ public final class Decorator {
         if (!customDecoration) {
             root.setPadding(Insets.EMPTY);
         } else {
-            root.setPadding(new Insets(currentTopInset, SHADOW_SIZE, SHADOW_SIZE, SHADOW_SIZE));
+            root.setPadding(new Insets(currentTopInset, currentRightInset, SHADOW_SIZE, currentLeftInset));
         }
     }
 
@@ -340,20 +346,12 @@ public final class Decorator {
         Stage currentStage = stage;
         if (currentStage == null || nativeDecorationEnabled
                 || SystemInfo.CURRENT_OS != OperatingSystem.MACOS) {
-            if (currentTopInset != SHADOW_SIZE) {
-                currentTopInset = SHADOW_SIZE;
-                lastTopInset = SHADOW_SIZE;
-                applyWindowPadding();
-            }
+            resetWindowInsets();
             return;
         }
 
         if (WindowState.isMaximized(currentStage) || currentStage.isFullScreen() || currentStage.isIconified()) {
-            if (currentTopInset != SHADOW_SIZE) {
-                currentTopInset = SHADOW_SIZE;
-                lastTopInset = SHADOW_SIZE;
-                applyWindowPadding();
-            }
+            resetWindowInsets();
             return;
         }
 
@@ -363,9 +361,34 @@ public final class Decorator {
 
         double distance = currentStage.getY() - visualBounds.getMinY();
         double target = Math.max(0.0, Math.min(SHADOW_SIZE, SHADOW_SIZE * distance / TOP_COLLAPSE_DISTANCE));
-        if (Math.abs(target - lastTopInset) > 0.01) {
+
+        double leftDistance = currentStage.getX() - visualBounds.getMinX();
+        double leftTarget = Math.max(0.0, Math.min(SHADOW_SIZE, SHADOW_SIZE * leftDistance / TOP_COLLAPSE_DISTANCE));
+        double rightDistance = visualBounds.getMaxX() - (currentStage.getX() + currentStage.getWidth());
+        double rightTarget = Math.max(0.0, Math.min(SHADOW_SIZE, SHADOW_SIZE * rightDistance / TOP_COLLAPSE_DISTANCE));
+
+        if (Math.abs(target - lastTopInset) > 0.01
+                || Math.abs(leftTarget - lastLeftInset) > 0.01
+                || Math.abs(rightTarget - lastRightInset) > 0.01) {
             lastTopInset = target;
             currentTopInset = target;
+            lastLeftInset = leftTarget;
+            currentLeftInset = leftTarget;
+            lastRightInset = rightTarget;
+            currentRightInset = rightTarget;
+            applyWindowPadding();
+        }
+    }
+
+    /// Restores the full shadow insets when edge collapse does not apply.
+    private void resetWindowInsets() {
+        if (currentTopInset != SHADOW_SIZE || currentLeftInset != SHADOW_SIZE || currentRightInset != SHADOW_SIZE) {
+            currentTopInset = SHADOW_SIZE;
+            currentLeftInset = SHADOW_SIZE;
+            currentRightInset = SHADOW_SIZE;
+            lastTopInset = SHADOW_SIZE;
+            lastLeftInset = SHADOW_SIZE;
+            lastRightInset = SHADOW_SIZE;
             applyWindowPadding();
         }
     }
