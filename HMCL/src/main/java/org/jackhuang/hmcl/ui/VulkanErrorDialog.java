@@ -61,6 +61,10 @@ public final class VulkanErrorDialog {
     public void show() {
         Stage stage = new Stage();
         stage.setTitle(i18n("game.vulkan.title"));
+        Stage owner = Controllers.getStage();
+        if (owner != null) {
+            stage.initOwner(owner);
+        }
 
         Label title = new Label(i18n("game.vulkan.title"));
         title.setStyle("-fx-font-size: 17px; -fx-font-weight: bold;");
@@ -103,6 +107,12 @@ public final class VulkanErrorDialog {
         Scene scene = new Scene(root);
         StyleSheets.init(scene);
         stage.setScene(scene);
+        stage.setOnShown(event -> {
+            if (owner != null) {
+                stage.setX(owner.getX() + (owner.getWidth() - stage.getWidth()) / 2);
+                stage.setY(owner.getY() + (owner.getHeight() - stage.getHeight()) / 2);
+            }
+        });
         stage.show();
     }
 
