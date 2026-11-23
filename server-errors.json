@@ -1,0 +1,40 @@
+{
+  "errors": [
+    {
+      "id": "world-corrupted",
+      "patterns": ["No key dimensions", "Failed to load datapacks"],
+      "title": "世界数据损坏",
+      "message": "服务端读取世界时缺少 dimensions 或 seed。请先备份 world 文件夹，再恢复备份或删除 world 让服务端重新生成。"
+    },
+    {
+      "id": "java-version",
+      "patterns": ["UnsupportedClassVersionError", "compiled by a more recent version"],
+      "title": "Java 版本不匹配",
+      "message": "当前 Java 版本低于服务端要求，请在启动参数里换用更高版本的 Java。"
+    },
+    {
+      "id": "port-in-use",
+      "patterns": ["Address already in use", "FAILED TO BIND TO PORT"],
+      "title": "端口被占用",
+      "message": "server-port 已被其他程序占用，请修改端口或关闭占用程序。"
+    },
+    {
+      "id": "eula",
+      "patterns": ["You need to agree to the EULA"],
+      "title": "未同意 EULA",
+      "message": "需要先在服务端目录的 eula.txt 中同意 Minecraft EULA。"
+    },
+    {
+      "id": "out-of-memory",
+      "patterns": ["OutOfMemoryError", "Java heap space"],
+      "title": "内存不足",
+      "message": "服务端内存不足，请调高最大内存或减少模组/插件。"
+    },
+    {
+      "id": "mod-incompatible",
+      "patterns": ["Incompatible mod set", "ModResolutionException"],
+      "title": "模组不兼容",
+      "message": "服务端模组之间存在依赖或版本冲突，请根据日志移除冲突模组。"
+    }
+  ]
+}

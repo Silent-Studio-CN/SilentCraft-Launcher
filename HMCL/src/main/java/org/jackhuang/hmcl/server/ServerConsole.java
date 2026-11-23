@@ -175,6 +175,9 @@ public final class ServerConsole {
             }, "server-console").start();
         } catch (Exception e) {
             LOG.warning("Failed to start server", e);
+            Path logFile = directory.resolve("logs").resolve("hmcl-server.log");
+            ServerErrorReporter.report(java.util.List.of(org.jackhuang.hmcl.util.StringUtils.getStackTrace(e)),
+                    -1, logFile);
         }
     }
 
