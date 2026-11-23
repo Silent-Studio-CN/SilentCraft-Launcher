@@ -328,6 +328,22 @@ public final class Controllers {
     /// Initializes the main application stage, scene graph, and background services.
     ///
     /// @param stage the primary application stage, which must not have been shown
+    /// Routes the macOS application menu's About item to the launcher's About page.
+    private static void setupMacOSAboutHandler() {
+        if (SystemInfo.CURRENT_OS != OperatingSystem.MACOS) {
+            return;
+        }
+        try {
+            java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+            if (desktop.isSupported(java.awt.Desktop.Action.APP_ABOUT)) {
+                desktop.setAboutHandler(event -> Platform.runLater(
+                        () -> navigate(new org.jackhuang.hmcl.ui.main.AboutPage())));
+            }
+        } catch (Throwable e) {
+            LOG.warning("Failed to install macOS About handler", e);
+        }
+    }
+
     public static void initialize(Stage stage) {
         LOG.info("Start initializing application");
 
@@ -346,6 +362,7 @@ public final class Controllers {
         }
 
         configureMainStage(stage);
+        setupMacOSAboutHandler();
 
         decorator = new Decorator(getRootPage(), Controllers::configureMainStage);
         Scene mainScene = decorator.attachStage(stage);
