@@ -56,7 +56,6 @@ public final class ServerRepository {
     /// Returns every configured server root, with the primary root first.
     public static List<Path> getDirectories() {
         java.util.LinkedHashSet<Path> directories = new java.util.LinkedHashSet<>();
-        directories.add(rootDirectory());
 
         Path file = directoriesFile();
         if (Files.isRegularFile(file)) {
@@ -71,6 +70,13 @@ public final class ServerRepository {
                 }
             } catch (Exception ignored) {
             }
+        }
+
+        Path primary = rootDirectory();
+        if (directories.isEmpty()) {
+            directories.add(primary);
+        } else if (!directories.contains(primary)) {
+            directories.add(primary);
         }
 
         return List.copyOf(directories);
