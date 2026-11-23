@@ -99,7 +99,7 @@ public class GameCrashWindow extends Stage {
         this.stackPane = new StackPane(view);
         this.feedbackTextFlow.getChildren().addAll(FXUtils.parseSegment(i18n("game.crash.feedback"), Controllers::onHyperlinkAction));
 
-        setScene(new Scene(stackPane, 800, 480));
+        setScene(new Scene(stackPane, mismatch != null ? 1160 : 800, mismatch != null ? 620 : 480));
         StyleSheets.init(getScene());
         setTitle(i18n("game.crash.title"));
         FXUtils.setIcon(this);
@@ -460,9 +460,10 @@ public class GameCrashWindow extends Stage {
                 toolBar.getChildren().setAll(exportButtonPane, logButton, helpButton);
             }
 
+            VBox main = new VBox(titlePane, infoPane, moddedPane, gameDirPane, toolBar);
             if (mismatch != null) {
                 Label detectionTitle = new Label(i18n("game.mod_mismatch.detected"));
-                detectionTitle.getStyleClass().add("two-line-item-second-large-title");
+                detectionTitle.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
                 Label fixLabel = new Label(i18n("game.mod_mismatch.fix", mismatch.mod()));
                 fixLabel.setWrapText(true);
 
@@ -483,17 +484,25 @@ public class GameCrashWindow extends Stage {
                                 }
                             }));
                 });
+
                 JFXButton close = new JFXButton(i18n("button.close"));
+                close.setStyle("-fx-background-color: -monet-surface-variant; -fx-text-fill: -monet-on-surface;");
                 close.setOnAction(event -> close());
 
                 HBox actions = new HBox(8, install, close);
                 actions.setAlignment(Pos.CENTER_LEFT);
 
-                VBox repairBox = new VBox(6, detectionTitle, fixLabel, actions);
-                repairBox.setPadding(new Insets(8));
-                getChildren().setAll(titlePane, infoPane, moddedPane, gameDirPane, repairBox, toolBar);
+                VBox repairBox = new VBox(10, detectionTitle, fixLabel, actions);
+                repairBox.setPadding(new Insets(16));
+                repairBox.setPrefWidth(320);
+                repairBox.setMinWidth(300);
+                repairBox.setStyle("-fx-background-color: -monet-surface; -fx-border-color: -monet-outline-variant; -fx-border-width: 0 0 0 1;");
+
+                HBox body = new HBox(main, repairBox);
+                HBox.setHgrow(main, Priority.ALWAYS);
+                getChildren().setAll(body);
             } else {
-                getChildren().setAll(titlePane, infoPane, moddedPane, gameDirPane, toolBar);
+                getChildren().setAll(main);
             }
         }
 

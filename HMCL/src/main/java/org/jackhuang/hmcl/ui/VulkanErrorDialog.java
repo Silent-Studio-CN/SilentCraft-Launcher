@@ -117,6 +117,7 @@ public final class VulkanErrorDialog {
                     });
         });
         JFXButton close = new JFXButton(i18n("button.close"));
+        close.setStyle("-fx-background-color: -monet-surface-variant; -fx-text-fill: -monet-on-surface;");
         close.setOnAction(event -> stage.close());
 
         HBox actions = new HBox(8, install, close);
