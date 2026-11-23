@@ -50,8 +50,8 @@ public final class ServerConsole {
     private ServerConsole() {
     }
 
-    /// Reads the required Java major from version.json, or falls back to Java 8.
-    private static int requiredJava(Path directory) {
+    /// Reads the required Java major from version.json, then from the Minecraft version.
+    private static int requiredJava(Path directory, String gameVersion) {
         Path metadata = directory.resolve("version.json");
         if (Files.isRegularFile(metadata)) {
             try {
@@ -62,6 +62,37 @@ public final class ServerConsole {
                     return Integer.parseInt(matcher.group(1));
                 }
             } catch (Exception ignored) {
+            }
+        }
+        return requiredJavaForVersion(gameVersion);
+    }
+
+    /// Maps a Minecraft version to the minimum Java major.
+    private static int requiredJavaForVersion(String version) {
+        if (version == null || version.isBlank()) {
+            return 8;
+        }
+        if (version.startsWith("26.")) {
+            return 25;
+        }
+        if (version.startsWith("1.")) {
+            String[] parts = version.split("\\.");
+            try {
+                int minor = Integer.parseInt(parts[1]);
+                int patch = parts.length > 2 ? Integer.parseInt(parts[2].replaceAll("\\D.*", "")) : 0;
+                if (minor >= 21) {
+                    return 21;
+                }
+                if (minor == 20 && patch >= 5) {
+                    return 21;
+                }
+                if (minor >= 18) {
+                    return 17;
+                }
+                if (minor == 17) {
+                    return 16;
+                }
+            } catch (NumberFormatException ignored) {
             }
         }
         return 8;
@@ -114,7 +145,7 @@ public final class ServerConsole {
             Files.createDirectories(logDirectory);
             Path logFile = logDirectory.resolve("hmcl-server.log");
 
-            int requiredJava = requiredJava(directory);
+            int requiredJava = requiredJava(directory, server.metadata().gameVersion());
             Path javaBinary = findJava(requiredJava);
             if (javaBinary == null) {
                 org.jackhuang.hmcl.ui.Controllers.dialog(
