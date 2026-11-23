@@ -44,11 +44,21 @@ public final class VulkanErrorDialog {
 
     /// Returns whether the log contains a real Vulkan failure, not just normal backend selection.
     public static boolean matchesError(String text) {
-        return text.contains("VK_ERROR") || text.contains("VulkanCommandEncoder")
+        // Unambiguous Vulkan/JVM stack markers.
+        if (text.contains("VulkanCommandEncoder") || text.contains("VK_ERROR")
                 || text.contains("VK semaphore") || text.contains("Failed to create Vulkan")
-                || text.contains("Device lost") || text.contains("vkCreate") || text.contains("vkQueue")
-                || text.contains("Window surface creation") || text.contains("GLFW_NO_API")
-                || text.contains("Failed to create window");
+                || text.contains("vkCreate") || text.contains("vkQueue")
+                || text.contains("GLFW_NO_API")) {
+            return true;
+        }
+
+        // Generic window/device messages only count when Vulkan appears in the same captured context.
+        if (text.contains("Vulkan")) {
+            return text.contains("Failed to create window")
+                    || text.contains("Window surface creation")
+                    || text.contains("Device lost");
+        }
+        return false;
     }
 
     /// Returns whether the log contains a Vulkan crash signature.

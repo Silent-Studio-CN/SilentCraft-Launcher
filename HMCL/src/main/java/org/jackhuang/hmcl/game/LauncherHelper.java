@@ -853,6 +853,7 @@ public final class LauncherHelper {
         private ManagedProcess process;
         private volatile boolean lwjgl;
         private volatile boolean vulkanReported;
+        private final StringBuilder vulkanProbe = new StringBuilder();
         private LogWindow logWindow;
         private final boolean detectWindow;
         private final CircularArrayList<Log> logs;
@@ -982,10 +983,16 @@ public final class LauncherHelper {
                 System.out.println(log);
 
             log = StringUtils.parseEscapeSequence(log);
-            if (!vulkanReported && org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(log)) {
-                vulkanReported = true;
-                LOG.info("Detected Vulkan failure in game log");
-                runLater(() -> new org.jackhuang.hmcl.ui.VulkanErrorDialog(gameInstance).show());
+            if (!vulkanReported) {
+                vulkanProbe.append(log).append('\n');
+                if (vulkanProbe.length() > 16000) {
+                    vulkanProbe.delete(0, vulkanProbe.length() - 16000);
+                }
+                if (org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(vulkanProbe.toString())) {
+                    vulkanReported = true;
+                    LOG.info("Detected Vulkan failure in game log");
+                    runLater(() -> new org.jackhuang.hmcl.ui.VulkanErrorDialog(gameInstance).show());
+                }
             }
             if (forbiddenAccessToken != null)
                 log = log.replace(forbiddenAccessToken, "<access token>");
