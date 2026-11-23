@@ -46,7 +46,9 @@ public final class VulkanErrorDialog {
     public static boolean matchesError(String text) {
         return text.contains("VK_ERROR") || text.contains("VulkanCommandEncoder")
                 || text.contains("VK semaphore") || text.contains("Failed to create Vulkan")
-                || text.contains("Device lost") || text.contains("vkCreate") || text.contains("vkQueue");
+                || text.contains("Device lost") || text.contains("vkCreate") || text.contains("vkQueue")
+                || text.contains("Window surface creation") || text.contains("GLFW_NO_API")
+                || text.contains("Failed to create window");
     }
 
     /// Returns whether the log contains a Vulkan crash signature.
