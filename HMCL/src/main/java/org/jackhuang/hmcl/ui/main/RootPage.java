@@ -103,8 +103,8 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
         // ─── 服务端分类的两个子项
         AdvancedListItem serverManageItem = new AdvancedListItem();
         updateServerManageItem(serverManageItem);
-        SettingsManager.settings().lastServerTypeProperty().addListener((obs, o, n) -> updateServerManageItem(serverManageItem));
-        SettingsManager.settings().lastServerVersionProperty().addListener((obs, o, n) -> updateServerManageItem(serverManageItem));
+        org.jackhuang.hmcl.server.ServerSelection.selectedProperty()
+                .addListener((obs, o, n) -> updateServerManageItem(serverManageItem));
         serverManageItem.setOnAction(e -> Controllers.navigate(Controllers.getServerManagePage()));
         if (AnimationUtils.isAnimationEnabled()) {
             serverManageItem.setPrepareAction(Controllers::prepareServerManagePage);
@@ -227,8 +227,8 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
     /// Builds a 20px image icon with the standard sidebar margin.
     private static javafx.scene.Node serverIcon(org.jackhuang.hmcl.setting.GameInstanceIconType type) {
         javafx.scene.image.ImageView view = new javafx.scene.image.ImageView(type.getIcon());
-        view.setFitWidth(20);
-        view.setFitHeight(20);
+        view.setFitWidth(32);
+        view.setFitHeight(32);
         view.setPreserveRatio(true);
         view.setMouseTransparent(true);
         AdvancedListItem.setMargin(view, AdvancedListItem.LEFT_ICON_MARGIN);
@@ -237,20 +237,21 @@ public class RootPage extends DecoratorAnimatedPage implements DecoratorPage {
 
     /// Updates the sidebar title and icon of the most recently downloaded server.
     private void updateServerManageItem(AdvancedListItem item) {
-        ServerType type = SettingsManager.settings().getLastServerType();
-        String version = SettingsManager.settings().getLastServerVersion();
-
-        boolean none = version == null || version.isBlank();
+        org.jackhuang.hmcl.server.ServerRepository.ServerInstance server =
+                org.jackhuang.hmcl.server.ServerSelection.getSelected();
+        boolean none = server == null;
+        String type = none ? "" : server.metadata().type();
+        String version = none ? "" : server.metadata().gameVersion();
         if (none) {
             item.setLeftIcon(SVG.DRESSER);
         } else {
-            switch (type) {
-                case PAPER -> item.setLeftGraphic(serverIcon(org.jackhuang.hmcl.setting.GameInstanceIconType.PAPER));
-                case SPIGOT -> item.setLeftIcon(SVG.FOLDER);
+            switch (type.toUpperCase(java.util.Locale.ROOT)) {
+                case "PAPER" -> item.setLeftGraphic(serverIcon(org.jackhuang.hmcl.setting.GameInstanceIconType.PAPER));
+                case "SPIGOT" -> item.setLeftIcon(SVG.FOLDER);
                 default -> item.setLeftGraphic(serverIcon(org.jackhuang.hmcl.setting.GameInstanceIconType.GRASS));
             }
         }
-        item.setTitle(none ? i18n("server.local.none") : type.getDisplayName() + System.lineSeparator() + version);
+        item.setTitle(none ? i18n("server.local.none") : type + System.lineSeparator() + version);
         item.setSubtitle(none ? i18n("server.local.get") : null);
     }
 }
