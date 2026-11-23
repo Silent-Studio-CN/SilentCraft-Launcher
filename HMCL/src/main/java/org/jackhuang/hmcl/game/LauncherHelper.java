@@ -998,17 +998,6 @@ public final class LauncherHelper {
                 }
             }
 
-            if (!vulkanReported && !org.jackhuang.hmcl.ui.VulkanErrorDialog.isInstalled(gameInstance)) {
-                vulkanProbe.append(log).append('\n');
-                if (vulkanProbe.length() > 16000) {
-                    vulkanProbe.delete(0, vulkanProbe.length() - 16000);
-                }
-                if (org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(vulkanProbe.toString())) {
-                    vulkanReported = true;
-                    LOG.info("Detected Vulkan failure in game log");
-                    runLater(() -> new org.jackhuang.hmcl.ui.VulkanErrorDialog(gameInstance).show());
-                }
-            }
             if (forbiddenAccessToken != null)
                 log = log.replace(forbiddenAccessToken, "<access token>");
 

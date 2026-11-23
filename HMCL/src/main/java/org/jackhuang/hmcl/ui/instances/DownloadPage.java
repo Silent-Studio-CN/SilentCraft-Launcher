@@ -91,29 +91,44 @@ public class DownloadPage extends Control implements DecoratorPage, PageAware {
         }
     }
 
-    /// Returns whether a jar matching the addon already exists in the instance mods folder.
+    /// Returns whether a jar matching the addon already exists in any relevant mods folder.
     private static boolean isInstalled(RemoteAddon addon, HMCLGameInstance.Optional reference) {
         HMCLGameInstance instance = reference.instance();
+        if (instance == null && reference.instanceId() != null) {
+            try {
+                instance = reference.repository().getInstance(reference.instanceId());
+            } catch (Exception ignored) {
+            }
+        }
         if (instance == null) {
             instance = reference.repository().getSelectedInstance();
         }
-        if (instance == null) {
-            return false;
+
+        java.util.List<Path> dirs = new java.util.ArrayList<>();
+        if (instance != null) {
+            dirs.add(instance.getRunDirectory().resolve("mods"));
         }
-        Path mods = instance.getRunDirectory().resolve("mods");
-        if (!java.nio.file.Files.isDirectory(mods)) {
-            return false;
+        dirs.add(reference.repository().getBaseDirectory().resolve("mods"));
+
+        String slug = addon.slug().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+        String title = addon.title().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+        for (Path mods : dirs) {
+            if (!java.nio.file.Files.isDirectory(mods)) {
+                continue;
+            }
+            try (var stream = java.nio.file.Files.list(mods)) {
+                boolean found = stream.anyMatch(path -> {
+                    String name = path.getFileName().toString().toLowerCase(Locale.ROOT)
+                            .replaceAll("[^a-z0-9]", "");
+                    return name.endsWith("jar") && (name.contains(slug) || name.contains(title));
+                });
+                if (found) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
         }
-        String slug = addon.slug().toLowerCase(Locale.ROOT);
-        String title = addon.title().toLowerCase(Locale.ROOT);
-        try (var stream = java.nio.file.Files.list(mods)) {
-            return stream.anyMatch(path -> {
-                String name = path.getFileName().toString().toLowerCase(Locale.ROOT);
-                return name.endsWith(".jar") && (name.contains(slug) || name.contains(title));
-            });
-        } catch (Exception e) {
-            return false;
-        }
+        return false;
     }
 
     private void loadAddonVersions() {
