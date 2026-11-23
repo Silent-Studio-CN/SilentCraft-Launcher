@@ -1066,9 +1066,12 @@ public final class LauncherHelper {
             for (Log log : logs) {
                 gameLog.append(log.getLog()).append('\n');
             }
+            boolean fatalWindowError = gameLog.indexOf("Failed to create window") >= 0
+                    && gameLog.indexOf("GLFW error") >= 0;
             boolean vulkanCrash = !vulkanReported
                     && !org.jackhuang.hmcl.ui.VulkanErrorDialog.isInstalled(gameInstance)
-                    && org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(gameLog.toString());
+                    && org.jackhuang.hmcl.ui.VulkanErrorDialog.matchesError(gameLog.toString())
+                    && (exitType != ExitType.NORMAL || fatalWindowError);
             if (exitType != ExitType.NORMAL || vulkanCrash) {
                 gameInstance.markLaunchedAbnormally();
                 if (vulkanCrash) {
