@@ -60,9 +60,15 @@ public final class AboutPage extends SpinnerPane {
             logo.setPreserveRatio(true);
             launcher.setLeading(logo);
             launcher.setTitle(Metadata.FULL_NAME);
-            launcher.setSubtitle(Metadata.VERSION + " · based on HMCL");
+            launcher.setSubtitle(Metadata.VERSION + " · " + i18n("about.based_on_hmcl"));
 
-            about.getContent().setAll(launcher);
+            var hmclLink = LineButton.createExternalLinkButton("https://github.com/HMCL-dev/HMCL");
+            hmclLink.setLargeTitle(true);
+            hmclLink.setTitle("HMCL");
+            hmclLink.setSubtitle(i18n("about.upstream.statement"));
+            hmclLink.setLeading(SVG.OPEN_IN_NEW.createIcon(32));
+
+            about.getContent().setAll(launcher, hmclLink);
         }
 
         ComponentList systemInfo = new ComponentList();
@@ -241,12 +247,7 @@ public final class AboutPage extends SpinnerPane {
             openSource.setTitle(i18n("about.open_source"));
             openSource.setSubtitle(i18n("about.open_source.statement"));
 
-            var upstream = LineButton.createExternalLinkButton("https://github.com/HMCL-dev/HMCL");
-            upstream.setLargeTitle(true);
-            upstream.setTitle(i18n("about.upstream"));
-            upstream.setSubtitle(i18n("about.upstream.statement"));
-
-            legal.getContent().setAll(copyright, claim, openSource, upstream);
+            legal.getContent().setAll(copyright, claim, openSource);
         }
 
         content.getChildren().setAll(
