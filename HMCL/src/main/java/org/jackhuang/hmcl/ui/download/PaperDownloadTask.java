@@ -45,7 +45,8 @@ public final class PaperDownloadTask extends Task<Void> {
     public void execute() throws Exception {
         Files.createDirectories(target.getParent());
 
-        if (size <= 0) {
+        long total = size > 0 ? size : contentLength(url);
+        if (total <= 0) {
             downloadWhole(url, target);
             verify();
             return;
@@ -57,7 +58,7 @@ public final class PaperDownloadTask extends Task<Void> {
         Thread speedReporter = startSpeedReporter(downloaded);
 
         try {
-            downloadSegments(parts, downloaded);
+            downloadSegments(parts, downloaded, total);
         } catch (IOException e) {
             for (Path part : parts) {
                 Files.deleteIfExists(part);
@@ -106,18 +107,18 @@ public final class PaperDownloadTask extends Task<Void> {
         thread.interrupt();
     }
 
-    private void downloadSegments(List<Path> parts, AtomicLong downloaded) throws Exception {
-        long chunkSize = (size + SEGMENTS - 1) / SEGMENTS;
+    private void downloadSegments(List<Path> parts, AtomicLong downloaded, long total) throws Exception {
+        long chunkSize = (total + SEGMENTS - 1) / SEGMENTS;
         ExecutorService pool = Executors.newFixedThreadPool(SEGMENTS);
         List<Future<?>> futures = new ArrayList<>(SEGMENTS);
 
         try {
             for (int i = 0; i < SEGMENTS; i++) {
                 long start = i * chunkSize;
-                if (start >= size) {
+                if (start >= total) {
                     break;
                 }
-                long end = Math.min(size - 1, start + chunkSize - 1);
+                long end = Math.min(total - 1, start + chunkSize - 1);
                 Path part = target.resolveSibling(target.getFileName() + ".part" + i);
                 parts.add(part);
 
@@ -168,6 +169,21 @@ public final class PaperDownloadTask extends Task<Void> {
             }
         } finally {
             connection.disconnect();
+        }
+    }
+
+    /// Reads Content-Length for servers that support range requests.
+    private static long contentLength(String url) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(8000);
+            connection.setReadTimeout(8000);
+            long length = connection.getContentLengthLong();
+            connection.disconnect();
+            return length;
+        } catch (Exception e) {
+            return -1;
         }
     }
 

@@ -61,7 +61,7 @@ public final class PluginDownloadPage extends DownloadListPage {
             return;
         }
 
-        Controllers.taskDialog(new FileDownloadTask(plugin.url(), directory.resolve(plugin.filename())),
+        Controllers.taskDialog(new PaperDownloadTask(plugin.url(), directory.resolve(plugin.filename()), 0, null),
                 i18n("message.downloading.file", plugin.filename()),
                 TaskCancellationAction.NORMAL);
     }

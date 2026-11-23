@@ -501,7 +501,7 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
 
     /// The selected game version list download source.
     @SerializedName("versionListSource")
-    private final ObjectProperty<DownloadSource> versionListSource = new RawPreservingObjectProperty<>(DownloadSource.DEFAULT);
+    private final ObjectProperty<DownloadSource> versionListSource = new RawPreservingObjectProperty<>(DownloadSource.MIRROR);
 
     /// Returns the selected game version list download source property.
     public ObjectProperty<DownloadSource> versionListSourceProperty() {
@@ -510,7 +510,7 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
 
     /// The selected file download source.
     @SerializedName("fileDownloadSource")
-    private final ObjectProperty<DownloadSource> fileDownloadSource = new RawPreservingObjectProperty<>(DownloadSource.DEFAULT);
+    private final ObjectProperty<DownloadSource> fileDownloadSource = new RawPreservingObjectProperty<>(DownloadSource.MIRROR);
 
     /// Returns the selected file download source property.
     public ObjectProperty<DownloadSource> fileDownloadSourceProperty() {
