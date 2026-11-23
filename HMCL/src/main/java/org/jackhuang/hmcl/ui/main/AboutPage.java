@@ -60,7 +60,8 @@ public final class AboutPage extends SpinnerPane {
             logo.setPreserveRatio(true);
             launcher.setLeading(logo);
             launcher.setTitle(Metadata.FULL_NAME);
-            launcher.setSubtitle(Metadata.VERSION + " · " + i18n("about.based_on_hmcl"));
+            launcher.setSubtitle(i18n("about.based_on_version",
+                    Metadata.VERSION.replace(".SNAPSHOT", "").replace("-SNAPSHOT", "")));
 
             var hmclLink = LineButton.createExternalLinkButton("https://github.com/HMCL-dev/HMCL");
             hmclLink.setLargeTitle(true);

@@ -88,8 +88,9 @@ public final class EntryPoint {
             command.add(jar.toString());
             command.addAll(java.util.List.of(args));
 
-            new ProcessBuilder(command).inheritIO().start();
-            System.exit(0);
+            Process child = new ProcessBuilder(command).inheritIO().start();
+            // Keep the original process in the terminal's foreground group so Ctrl+C still reaches the child.
+            System.exit(child.waitFor());
         } catch (Throwable e) {
             LOG.warning("Failed to relaunch with macOS dock name", e);
         }
