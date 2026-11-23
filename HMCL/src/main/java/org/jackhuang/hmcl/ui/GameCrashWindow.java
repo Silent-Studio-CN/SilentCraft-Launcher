@@ -19,6 +19,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import org.jackhuang.hmcl.Metadata;
+import org.jetbrains.annotations.Nullable;
 import org.jackhuang.hmcl.game.*;
 import org.jackhuang.hmcl.launch.ProcessListener;
 import org.jackhuang.hmcl.setting.StyleSheets;
@@ -72,6 +73,9 @@ public class GameCrashWindow extends Stage {
 
     private final List<Log> logs;
 
+    /// Detected mod dependency mismatch, or null.
+    private final @Nullable ModMismatchDetector.Mismatch mismatch;
+
     public GameCrashWindow(ManagedProcess managedProcess, ProcessListener.ExitType exitType, HMCLGameInstance gameInstance, LaunchOptions launchOptions, List<Log> logs) {
         Themes.applyNativeDarkMode(this);
 
@@ -80,6 +84,7 @@ public class GameCrashWindow extends Stage {
         this.gameInstance = gameInstance;
         this.launchOptions = launchOptions;
         this.logs = logs;
+        this.mismatch = ModMismatchDetector.detectFromInstance(gameInstance);
 
         memory = Optional.ofNullable(launchOptions.getMaxMemory()).map(i -> i + " " + i18n("settings.memory.unit.mib")).orElse("-");
 
@@ -455,7 +460,41 @@ public class GameCrashWindow extends Stage {
                 toolBar.getChildren().setAll(exportButtonPane, logButton, helpButton);
             }
 
-            getChildren().setAll(titlePane, infoPane, moddedPane, gameDirPane, toolBar);
+            if (mismatch != null) {
+                Label detectionTitle = new Label(i18n("game.mod_mismatch.detected"));
+                detectionTitle.getStyleClass().add("two-line-item-second-large-title");
+                Label fixLabel = new Label(i18n("game.mod_mismatch.fix", mismatch.mod()));
+                fixLabel.setWrapText(true);
+
+                JFXButton install = FXUtils.newRaisedButton(i18n("game.mod_mismatch.install"));
+                install.setOnAction(event -> {
+                    install.setDisable(true);
+                    install.setText(i18n("game.vulkan.installing"));
+                    CompletableFuture.runAsync(() -> ModMismatchDetector.installFix(gameInstance, mismatch))
+                            .whenComplete((ignored, throwable) -> Schedulers.javafx().execute(() -> {
+                                if (throwable == null) {
+                                    Controllers.showToast(i18n("install.success"));
+                                    close();
+                                } else {
+                                    install.setDisable(false);
+                                    install.setText(i18n("game.mod_mismatch.install"));
+                                    Controllers.dialog(throwable.getMessage(), i18n("install.failed"),
+                                            MessageDialogPane.MessageType.ERROR);
+                                }
+                            }));
+                });
+                JFXButton close = new JFXButton(i18n("button.close"));
+                close.setOnAction(event -> close());
+
+                HBox actions = new HBox(8, install, close);
+                actions.setAlignment(Pos.CENTER_LEFT);
+
+                VBox repairBox = new VBox(6, detectionTitle, fixLabel, actions);
+                repairBox.setPadding(new Insets(8));
+                getChildren().setAll(titlePane, infoPane, moddedPane, gameDirPane, repairBox, toolBar);
+            } else {
+                getChildren().setAll(titlePane, infoPane, moddedPane, gameDirPane, toolBar);
+            }
         }
 
     }

@@ -8,6 +8,8 @@ import org.jackhuang.hmcl.ui.construct.MessageDialogPane;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,6 +63,47 @@ public final class ModMismatchDetector {
                         () -> FXUtils.openFolder(instance.getRunDirectory().resolve("mods")))
                 .addCancel(i18n("button.close"), null);
         Controllers.dialog(builder.build());
+    }
+
+    /// Reads recent logs and crash reports from the instance and detects a mismatch.
+    public static @Nullable Mismatch detectFromInstance(HMCLGameInstance instance) {
+        StringBuilder text = new StringBuilder();
+        try {
+            Path latest = instance.getRunDirectory().resolve("logs/latest.log");
+            if (Files.isReadable(latest)) {
+                text.append(Files.readString(latest));
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            Path dir = instance.getRunDirectory().resolve("crash-reports");
+            if (Files.isDirectory(dir)) {
+                try (var stream = Files.list(dir)) {
+                    for (Path report : stream.filter(path -> path.getFileName().toString().endsWith(".txt"))
+                            .sorted(java.util.Comparator.comparing((Path path) -> {
+                                try {
+                                    return Files.getLastModifiedTime(path).toMillis();
+                                } catch (Exception e) {
+                                    return 0L;
+                                }
+                            }).reversed()).limit(2).toList()) {
+                        text.append(Files.readString(report));
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return detect(text.toString());
+    }
+
+    /// Installs a known fix, or opens Modrinth for an unknown mod.
+    public static void installFix(HMCLGameInstance instance, Mismatch mismatch) {
+        if (mismatch.mod().toLowerCase(java.util.Locale.ROOT).contains("neoloadingvulkanfix")) {
+            org.jackhuang.hmcl.ui.VulkanErrorDialog.installLatest(instance);
+        } else {
+            FXUtils.openLink("https://modrinth.com/mods?q="
+                    + java.net.URLEncoder.encode(mismatch.mod(), java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 
     /// One detected mod dependency mismatch.

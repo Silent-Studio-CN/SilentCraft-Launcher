@@ -100,7 +100,7 @@ public final class VulkanErrorDialog {
         install.setOnAction(event -> {
             install.setDisable(true);
             install.setText(i18n("game.vulkan.installing"));
-            CompletableFuture.runAsync(() -> installMod())
+            CompletableFuture.runAsync(() -> installLatest(instance))
                     .thenRun(() -> Platform.runLater(() -> {
                         Controllers.showToast(i18n("install.success"));
                         stage.close();
@@ -141,7 +141,7 @@ public final class VulkanErrorDialog {
     }
 
     /// Downloads the latest NeoLoading-Vulkan-Fix jar into the instance mods folder.
-    private void installMod() {
+    public static void installLatest(HMCLGameInstance instance) {
         try {
             String body = fetch("https://api.modrinth.com/v2/project/" + PROJECT_ID + "/version");
             JsonArray versions = JsonParser.parseString(body).getAsJsonArray();
