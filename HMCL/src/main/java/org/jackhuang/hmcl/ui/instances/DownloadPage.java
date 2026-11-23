@@ -84,8 +84,10 @@ public class DownloadPage extends Control implements DecoratorPage, PageAware {
             RemoteAddon.Version version = pendingVersion;
             pendingMod = null;
             pendingVersion = null;
-            javafx.application.Platform.runLater(() ->
-                    Controllers.dialog(new AddonVersion(mod, version, this)));
+            javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(
+                    javafx.util.Duration.millis(250));
+            delay.setOnFinished(event -> Controllers.dialog(new AddonVersion(mod, version, this)));
+            delay.play();
         }
     }
 
@@ -455,6 +457,16 @@ public class DownloadPage extends Control implements DecoratorPage, PageAware {
             }
             if (isInstalled(addon, instanceReference)) {
                 setTrailingIcon(SVG.CHECK_CIRCLE);
+            } else {
+                HMCLGameInstance.Optional reference = instanceReference;
+                javafx.animation.Timeline poll = new javafx.animation.Timeline(
+                        new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), event -> {
+                            if (isInstalled(addon, reference)) {
+                                setTrailingIcon(SVG.CHECK_CIRCLE);
+                            }
+                        }));
+                poll.setCycleCount(30);
+                poll.play();
             }
             if (StringUtils.isNotBlank(addon.iconUrl())) {
                 imageView.imageProperty().bind(FXUtils.newRemoteImage(addon.iconUrl(), 80, 80, true, true));
