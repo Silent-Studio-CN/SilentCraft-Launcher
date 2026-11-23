@@ -175,7 +175,7 @@ public final class PaperInstallPage extends DecoratorAnimatedPage implements Dec
                 : build.fileName();
         Path target = directory.resolve(fileName);
 
-        PaperDownloadTask jarTask = new PaperDownloadTask(build.url(), target, build.size(), build.sha256());
+        SilentStudioDownloadTask jarTask = new SilentStudioDownloadTask(build.url(), target, build.size(), build.sha256());
 
         Task<Void> prepare = jarTask.thenComposeAsync(Schedulers.io(), ignored -> Task.runAsync(Schedulers.io(),
                 () -> {

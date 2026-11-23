@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 ///
 /// The Paper CDN limits a single connection, so splitting the file into chunks and
 /// fetching them concurrently is noticeably faster than a sequential download.
-public final class PaperDownloadTask extends Task<Void> {
+public final class SilentStudioDownloadTask extends Task<Void> {
     private static final int SEGMENTS = 4;
 
     private final String url;
@@ -33,7 +33,7 @@ public final class PaperDownloadTask extends Task<Void> {
     private final long size;
     private final @Nullable String sha256;
 
-    public PaperDownloadTask(String url, Path target, long size, @Nullable String sha256) {
+    public SilentStudioDownloadTask(String url, Path target, long size, @Nullable String sha256) {
         this.url = url;
         this.target = target;
         this.size = size;

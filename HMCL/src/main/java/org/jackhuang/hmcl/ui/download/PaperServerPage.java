@@ -65,7 +65,7 @@ public final class PaperServerPage extends VBox {
         }
 
         Path target = directory.resolve("paper-" + remoteVersion.getGameVersion() + "-" + build.getBuildId() + ".jar");
-        PaperDownloadTask task = new PaperDownloadTask(build.url(), target, build.size(), build.sha256());
+        SilentStudioDownloadTask task = new SilentStudioDownloadTask(build.url(), target, build.size(), build.sha256());
         Task<Void> dialogTask = task.whenComplete(Schedulers.javafx(), (result, exception) -> {
             if (exception == null) {
                 org.jackhuang.hmcl.setting.SettingsManager.settings()
