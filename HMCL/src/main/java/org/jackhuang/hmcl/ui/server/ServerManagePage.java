@@ -117,9 +117,6 @@ public final class ServerManagePage extends DecoratorAnimatedPage implements Dec
         console.setText(String.join(System.lineSeparator(), ServerConsole.getLines())
                 + (ServerConsole.getLines().isEmpty() ? "" : System.lineSeparator()));
 
-        if (this.server != null && !ServerConsole.runningProperty().get()) {
-            ServerConsole.start(this.server);
-        }
     }
 
     /// Creates a page for the selected or first server.
