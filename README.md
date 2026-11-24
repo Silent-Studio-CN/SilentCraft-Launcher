@@ -1,4 +1,5 @@
 # SilentCraft Launcher
+<img width="2048" height="713" alt="model" src="https://github.com/user-attachments/assets/fe7023e8-d896-4c49-b601-814da84448ca" />
 
 SilentCraft Launcher 是一个基于 [HMCL](https://github.com/HMCL-dev/HMCL) 的第三方 Minecraft 启动器分支，面向中文玩家，重点补充**服务端下载与管理**能力。
 
