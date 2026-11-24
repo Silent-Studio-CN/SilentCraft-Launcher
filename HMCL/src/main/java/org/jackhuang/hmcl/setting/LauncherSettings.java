@@ -499,6 +499,14 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
         return downloadThreads;
     }
 
+    @SerializedName("downloadSpeedLimit")
+    private final IntegerProperty downloadSpeedLimit = new SimpleIntegerProperty(0);
+
+    /// Returns the per-file download speed limit in KiB/s, or 0 for unlimited.
+    public IntegerProperty downloadSpeedLimitProperty() {
+        return downloadSpeedLimit;
+    }
+
     /// The selected game version list download source.
     @SerializedName("versionListSource")
     private final ObjectProperty<DownloadSource> versionListSource = new RawPreservingObjectProperty<>(DownloadSource.MIRROR);

@@ -183,7 +183,24 @@ public class DownloadSettingsPage extends StackPane {
                 }
             }, settings().autoDownloadThreadsProperty(), settings().downloadThreadsProperty()));
 
-            downloadList.getContent().addAll(fileCommonLocationSublist, downloadThreadsSublist);
+            ComponentSublist speedLimitSublist = new ComponentSublist(() -> {
+                LinePane pane = new LinePane();
+                pane.setTitle(i18n("settings.launcher.download.speed_limit"));
+                pane.setSubtitle(i18n("settings.launcher.download.speed_limit.desc"));
+
+                JFXTextField field = new JFXTextField();
+                FXUtils.setLimitWidth(field, 100);
+                FXUtils.bind(field, settings().downloadSpeedLimitProperty(),
+                        SafeStringConverter.fromInteger()
+                                .restrict(it -> it >= 0)
+                                .fallbackTo(0)
+                                .asPredicate(Validator.addTo(field)));
+                pane.setRight(field);
+                return List.of(pane);
+            });
+            speedLimitSublist.setTitle(i18n("settings.launcher.download.speed_limit"));
+
+            downloadList.getContent().addAll(fileCommonLocationSublist, downloadThreadsSublist, speedLimitSublist);
             content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("download")), downloadList);
         }
 

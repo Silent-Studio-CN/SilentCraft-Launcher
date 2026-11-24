@@ -34,18 +34,24 @@ public final class SilentStudioDownloadTask extends Task<Void> {
     private final Path target;
     private final long size;
     private final @Nullable String sha256;
+    private final long limitBytesPerSecond;
+    private long throttleStartNanos;
+    private long throttledBytes;
 
     public SilentStudioDownloadTask(String url, Path target, long size, @Nullable String sha256) {
         this.url = url;
         this.target = target;
         this.size = size;
         this.sha256 = sha256;
+        this.limitBytesPerSecond = org.jackhuang.hmcl.setting.SettingsManager.settings()
+                .downloadSpeedLimitProperty().get() * 1024L;
         setName(target.getFileName().toString());
     }
 
     @Override
     public void execute() throws Exception {
         Files.createDirectories(target.getParent());
+        throttleStartNanos = System.nanoTime();
 
         long total = size > 0 ? size : contentLength(url);
         if (total <= 0) {
@@ -173,6 +179,7 @@ public final class SilentStudioDownloadTask extends Task<Void> {
                 int read;
                 while ((read = in.read(buffer)) > 0) {
                     out.write(buffer, 0, read);
+                    throttle(read);
                     updateProgress(downloaded.addAndGet(read), total);
                 }
             }
@@ -209,9 +216,28 @@ public final class SilentStudioDownloadTask extends Task<Void> {
             int read;
             while ((read = in.read(buffer)) > 0) {
                 out.write(buffer, 0, read);
+                throttle(read);
             }
         } finally {
             connection.disconnect();
+        }
+    }
+
+    /// Limits throughput by sleeping until the configured budget catches up.
+    private void throttle(long read) {
+        if (limitBytesPerSecond <= 0) {
+            return;
+        }
+        throttledBytes += read;
+        long expectedNanos = throttledBytes * 1_000_000_000L / limitBytesPerSecond;
+        long actualNanos = System.nanoTime() - throttleStartNanos;
+        long sleepNanos = expectedNanos - actualNanos;
+        if (sleepNanos > 0) {
+            try {
+                Thread.sleep(sleepNanos / 1_000_000L, (int) (sleepNanos % 1_000_000L));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
