@@ -99,7 +99,25 @@ public final class Logger {
             String log = format(doLog);
             Throwable exception = doLog.exception();
 
-            System.out.println(log);
+            String consoleLog = log;
+            String color = null;
+            String message = doLog.message();
+            if (message != null && message.contains("SILENTENGINE Successfully")) {
+                color = "[32m";
+            } else if (message != null && message.contains("SILENTENGINE Download Cancelled")) {
+                color = "[33m";
+            } else if (message != null && message.contains("SILENTENGINE Download Failed")) {
+                color = "[31m";
+            } else if (doLog.level() == Level.ERROR) {
+                color = "[31m";
+            } else if (doLog.level() == Level.WARNING) {
+                color = "[33m";
+            }
+            if (color != null) {
+                System.out.println(color + consoleLog + "[0m");
+            } else {
+                System.out.println(consoleLog);
+            }
             if (exception != null)
                 exception.printStackTrace(System.out);
 

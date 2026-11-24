@@ -297,11 +297,7 @@ public final class Launcher extends Application {
         try {
             LOG.info("*** " + Metadata.TITLE + " ***");
             String maintenanceLine = "***  此版本由 SilentStudio维护 - build " + buildNumber() + " ***";
-            if (System.console() != null) {
-                System.out.println("[33m" + maintenanceLine + "[0m");
-            } else {
-                LOG.info(maintenanceLine);
-            }
+            LOG.info(maintenanceLine);
             LOG.info("Operating System: " + SystemInfo.CURRENT_OS);
             if (SystemInfo.CURRENT_OS == OperatingSystem.WINDOWS) {
                 LOG.info("Processor Identifier: " + System.getenv("PROCESSOR_IDENTIFIER"));
