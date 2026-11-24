@@ -53,50 +53,50 @@ public final class SilentStudioDownloadTask extends Task<Void> {
         Files.createDirectories(target.getParent());
         throttleStartNanos = System.nanoTime();
 
-        long total = size > 0 ? size : contentLength(url);
-        if (total <= 0) {
-            downloadWhole(url, target);
-            verify();
-            return;
-        }
-
-        int segments = total < SMALL_FILE ? 1 : total < MEDIUM_FILE ? 2 : MAX_SEGMENTS;
-        if (segments == 1) {
-            downloadWhole(url, target);
-            verify();
-            return;
-        }
-
-        List<Path> parts = new ArrayList<>(segments);
-        AtomicLong downloaded = new AtomicLong();
-
-        Thread speedReporter = startSpeedReporter(downloaded);
-
+        Path temp = target.resolveSibling(target.getFileName() + ".download");
         try {
-            downloadSegments(parts, downloaded, total, segments);
-        } catch (java.util.concurrent.CancellationException e) {
-            throw e;
-        } catch (IOException e) {
-            for (Path part : parts) {
-                Files.deleteIfExists(part);
-            }
-            downloadWhole(url, target);
-            verify();
-            return;
-        }
+            long total = size > 0 ? size : contentLength(url);
 
-        try (OutputStream out = Files.newOutputStream(target)) {
-            for (Path part : parts) {
-                Files.copy(part, out);
+            if (total <= 0 || total < SMALL_FILE) {
+                downloadWhole(url, temp);
+                verify(temp);
+                Files.move(temp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                return;
+            }
+
+            int segments = total < MEDIUM_FILE ? 2 : MAX_SEGMENTS;
+            List<Path> parts = new ArrayList<>(segments);
+            AtomicLong downloaded = new AtomicLong();
+            Thread speedReporter = startSpeedReporter(downloaded);
+
+            try {
+                try {
+                    downloadSegments(parts, downloaded, total, segments);
+                } catch (java.util.concurrent.CancellationException e) {
+                    throw e;
+                } catch (IOException e) {
+                    downloadWhole(url, temp);
+                }
+
+                if (!Files.exists(temp)) {
+                    try (OutputStream out = Files.newOutputStream(temp)) {
+                        for (Path part : parts) {
+                            Files.copy(part, out);
+                        }
+                    }
+                }
+
+                verify(temp);
+                Files.move(temp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } finally {
+                stopSpeedReporter(speedReporter);
+                for (Path part : parts) {
+                    Files.deleteIfExists(part);
+                }
             }
         } finally {
-            stopSpeedReporter(speedReporter);
-            for (Path part : parts) {
-                Files.deleteIfExists(part);
-            }
+            Files.deleteIfExists(temp);
         }
-
-        verify();
     }
 
     /// Reports aggregate download speed once per second through the shared fetch event.
@@ -261,14 +261,14 @@ public final class SilentStudioDownloadTask extends Task<Void> {
         }
     }
 
-    private void verify() throws IOException {
+    private void verify(Path file) throws IOException {
         if (sha256 == null || sha256.isBlank()) {
             return;
         }
 
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            try (InputStream in = Files.newInputStream(target)) {
+            try (InputStream in = Files.newInputStream(file)) {
                 byte[] buffer = new byte[128 * 1024];
                 int read;
                 while ((read = in.read(buffer)) > 0) {
@@ -282,7 +282,7 @@ public final class SilentStudioDownloadTask extends Task<Void> {
             }
 
             if (!hex.toString().equalsIgnoreCase(sha256)) {
-                Files.deleteIfExists(target);
+                Files.deleteIfExists(file);
                 throw new IOException("SHA-256 校验失败");
             }
         } catch (java.security.NoSuchAlgorithmException e) {
