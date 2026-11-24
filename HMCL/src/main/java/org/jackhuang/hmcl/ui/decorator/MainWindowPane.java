@@ -102,7 +102,7 @@ final class MainWindowPane extends StackPane {
 
         windowButtons = createWindowButtons();
         titleBar = new BorderPane();
-        titleBar.setPickOnBounds(false);
+        titleBar.setPickOnBounds(true);
         titleBar.getStyleClass().addAll("jfx-tool-bar", "background");
         titleBar.setRight(windowButtons);
 
