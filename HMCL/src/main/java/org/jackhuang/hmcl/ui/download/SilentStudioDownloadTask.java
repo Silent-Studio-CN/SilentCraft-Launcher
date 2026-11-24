@@ -57,6 +57,8 @@ public final class SilentStudioDownloadTask extends Task<Void> {
         throttleStartNanos = System.nanoTime();
 
         Path temp = target.resolveSibling(target.getFileName() + ".download");
+        boolean success = false;
+        boolean cancelled = false;
         try {
             long total = size > 0 ? size : contentLength(url);
 
@@ -64,6 +66,7 @@ public final class SilentStudioDownloadTask extends Task<Void> {
                 downloadWhole(url, temp);
                 verify(temp);
                 Files.move(temp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                success = true;
                 return;
             }
 
@@ -91,20 +94,28 @@ public final class SilentStudioDownloadTask extends Task<Void> {
 
                 verify(temp);
                 Files.move(temp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                success = true;
             } finally {
                 stopSpeedReporter(speedReporter);
                 for (Path part : parts) {
                     Files.deleteIfExists(part);
                 }
             }
+        } catch (java.util.concurrent.CancellationException e) {
+            cancelled = true;
+            throw e;
         } finally {
             Files.deleteIfExists(temp);
             try {
                 long elapsedMillis = (System.nanoTime() - startedNanos) / 1_000_000L;
-                long bytes = Files.exists(target) ? Files.size(target) : 0;
-                double speed = elapsedMillis > 0 ? bytes / 1024.0 / (elapsedMillis / 1000.0) : 0;
-                LOG.info(String.format("SILENTENGINE Successfully Downloaded in %.1f Seconds",
-                        elapsedMillis / 1000.0));
+                double seconds = elapsedMillis / 1000.0;
+                if (success) {
+                    LOG.info(String.format("SILENTENGINE Successfully Downloaded in %.1f Seconds", seconds));
+                } else if (cancelled) {
+                    LOG.warning(String.format("SILENTENGINE Download Cancelled after %.1f Seconds", seconds));
+                } else {
+                    LOG.error(String.format("SILENTENGINE Download Failed after %.1f Seconds", seconds));
+                }
             } catch (Exception ignored) {
             }
         }
