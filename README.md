@@ -35,6 +35,18 @@ SilentCraft Launcher 是一个基于 [HMCL](https://github.com/HMCL-dev/HMCL) �
 
     MICROSOFT_AUTH_ID=<your-client-id> ./gradlew :HMCL:shadowJar
 
+## 发布
+
+一键推送并触发 GitHub Release：
+
+    ./scripts/release.sh -m "your commit message"
+
+只触发发布、不推送：
+
+    ./scripts/release.sh --no-push
+
+脚本会等待 workflow 完成，并输出固定最新版 Release 地址。
+
 ## 贡献者
 
 ### HMCL 上游
