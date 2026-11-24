@@ -325,7 +325,8 @@ public final class Decorator {
         boolean customDecoration = !nativeDecorationEnabled && !edgeToEdge;
         this.customDecoration = customDecoration;
         applyWindowPadding();
-        shadowContainer.setEffect(customDecoration ? windowShadow : null);
+        shadowContainer.setEffect(customDecoration
+                && SystemInfo.CURRENT_OS != OperatingSystem.WINDOWS ? windowShadow : null);
         mainWindowPane.setWindowCornersRounded(customDecoration);
     }
 

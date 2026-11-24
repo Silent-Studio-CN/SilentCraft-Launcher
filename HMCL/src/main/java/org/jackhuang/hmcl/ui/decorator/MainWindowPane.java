@@ -40,7 +40,7 @@ import static org.jackhuang.hmcl.util.i18n.I18n.i18n;
 final class MainWindowPane extends StackPane {
     /// The diameter, in pixels, of the rounded window corners.
     private static final double ARC = SystemInfo.CURRENT_OS == OperatingSystem.WINDOWS
-            ? 8.0
+            ? 18.0
             : 32.0;
 
     /// Selects the title-bar colors used over the launcher background.
