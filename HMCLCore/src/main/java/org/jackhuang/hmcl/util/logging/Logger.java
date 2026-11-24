@@ -102,7 +102,9 @@ public final class Logger {
             String consoleLog = log;
             String color = null;
             String message = doLog.message();
-            if (message != null && message.contains("SILENTENGINE Successfully")) {
+            if (message != null && message.contains("此版本由 SilentStudio维护")) {
+                color = "[33m";
+            } else if (message != null && message.contains("SILENTENGINE Successfully")) {
                 color = "[32m";
             } else if (message != null && message.contains("SILENTENGINE Download Cancelled")) {
                 color = "[33m";
