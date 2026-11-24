@@ -361,9 +361,9 @@ public final class Controllers {
             }
         }
 
-        if (!settings().transparentTitleBarDefaultAppliedProperty().get()) {
-            settings().windowTransparentProperty().set(true);
-            settings().transparentTitleBarDefaultAppliedProperty().set(true);
+        if (!settings().titleBarTransparentDefaultAppliedProperty().get()) {
+            settings().titleBarTransparentProperty().set(true);
+            settings().titleBarTransparentDefaultAppliedProperty().set(true);
             LOG.info("Applied default transparent title bar");
         }
 

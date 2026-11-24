@@ -318,7 +318,7 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
 
     /// Whether the launcher title bar is transparent.
     @SerializedName("titleBarTransparent")
-    private final BooleanProperty titleBarTransparent = new SimpleBooleanProperty(false);
+    private final BooleanProperty titleBarTransparent = new SimpleBooleanProperty(true);
 
     /// Returns the transparent title-bar property.
     public BooleanProperty titleBarTransparentProperty() {
@@ -327,7 +327,7 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
 
     /// Whether translucent launcher backgrounds reveal content behind the window.
     @SerializedName("windowTransparent")
-    private final BooleanProperty windowTransparent = new SimpleBooleanProperty(true);
+    private final BooleanProperty windowTransparent = new SimpleBooleanProperty(false);
 
     /// Returns the window transparency property.
     public BooleanProperty windowTransparentProperty() {
@@ -507,12 +507,12 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
         return downloadSpeedLimit;
     }
 
-    @SerializedName("transparentTitleBarDefaultApplied")
-    private final BooleanProperty transparentTitleBarDefaultApplied = new SimpleBooleanProperty(false);
+    @SerializedName("titleBarTransparentDefaultApplied")
+    private final BooleanProperty titleBarTransparentDefaultApplied = new SimpleBooleanProperty(false);
 
     /// Whether the transparent title bar default has already been applied to an existing configuration.
-    public BooleanProperty transparentTitleBarDefaultAppliedProperty() {
-        return transparentTitleBarDefaultApplied;
+    public BooleanProperty titleBarTransparentDefaultAppliedProperty() {
+        return titleBarTransparentDefaultApplied;
     }
 
     /// The selected game version list download source.
