@@ -6,6 +6,6 @@
 
 # SilentCraft Launcher
 
-SilentCraft Launcher เป็นฟอร์กจากชุมชนของ HMCL ที่เน้นการดาวน์โหลดและจัดการเซิร์ฟเวอร์ ไม่เกี่ยวข้องกับทีม HMCL
+SilentCraft Launcher ist ein Community-Fork von HMCL mit Fokus auf Server-Download und -Verwaltung. Es ist nicht mit dem HMCL-Team verbunden.
 
-[简体中文](README.md) · [ข้อเสนอแนะ](https://github.com/SilentCodeTeams/feedback)
+[简体中文](../README.md) · [Feedback](https://github.com/SilentCodeTeams/feedback)

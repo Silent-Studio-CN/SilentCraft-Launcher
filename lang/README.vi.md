@@ -8,4 +8,4 @@
 
 SilentCraft Launcher là bản fork cộng đồng của HMCL, tập trung vào tải xuống và quản lý máy chủ. Không liên kết với đội ngũ HMCL.
 
-[简体中文](README.md) · [Phản hồi](https://github.com/SilentCodeTeams/feedback)
+[简体中文](../README.md) · [Phản hồi](https://github.com/SilentCodeTeams/feedback)
