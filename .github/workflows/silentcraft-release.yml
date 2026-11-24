@@ -1,0 +1,57 @@
+name: SilentCraft Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Build JAR and EXE
+        run: ./gradlew :HMCL:shadowJar :HMCL:makeExecutables --no-daemon --stacktrace
+
+      - name: Collect release assets
+        run: |
+          VERSION="3.18"
+          BUILD="$(date +%y%m%d%H%M%S)"
+          JAR="$(ls HMCL/build/libs/HMCL-*.jar | head -n 1)"
+          EXE="$(ls HMCL/build/libs/HMCL-*.exe | head -n 1)"
+
+          cp "$JAR" "SilentCraft Launcher-v${VERSION}-build${BUILD}.jar"
+          cp "$EXE" "SilentCraft Launcher-v${VERSION}-build${BUILD}-x64.exe"
+          cp "$EXE" "SilentCraft Launcher-v${VERSION}-build${BUILD}-arm64.exe"
+
+          sha256sum "SilentCraft Launcher-v${VERSION}-build${BUILD}.jar" \
+                    "SilentCraft Launcher-v${VERSION}-build${BUILD}-x64.exe" \
+                    "SilentCraft Launcher-v${VERSION}-build${BUILD}-arm64.exe" \
+                    > "SilentCraft Launcher-v${VERSION}-build${BUILD}.sha256"
+
+          echo "TAG=v${VERSION}-build${BUILD}" >> "$GITHUB_ENV"
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "BUILD=${BUILD}" >> "$GITHUB_ENV"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$TAG" \
+            "SilentCraft Launcher-v${VERSION}-build${BUILD}.jar" \
+            "SilentCraft Launcher-v${VERSION}-build${BUILD}-x64.exe" \
+            "SilentCraft Launcher-v${VERSION}-build${BUILD}-arm64.exe" \
+            "SilentCraft Launcher-v${VERSION}-build${BUILD}.sha256" \
+            --target "$GITHUB_SHA" \
+            --title "SilentCraft Launcher v${VERSION} build ${BUILD}" \
+            --notes "SilentCraft Launcher v${VERSION} build ${BUILD}" \
+            --prerelease
