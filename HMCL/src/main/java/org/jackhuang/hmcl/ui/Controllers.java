@@ -373,9 +373,14 @@ public final class Controllers {
         org.jackhuang.hmcl.task.FileDownloadTask.setSilentEngineEnabled(
                 settings().downloadEngineProperty().get()
                         == org.jackhuang.hmcl.setting.DownloadEngine.SILENT_ENGINE);
-        settings().downloadEngineProperty().addListener((observable, oldValue, newValue) ->
-                org.jackhuang.hmcl.task.FileDownloadTask.setSilentEngineEnabled(
-                        newValue == org.jackhuang.hmcl.setting.DownloadEngine.SILENT_ENGINE));
+        settings().downloadEngineProperty().addListener((observable, oldValue, newValue) -> {
+            boolean enabled = newValue == org.jackhuang.hmcl.setting.DownloadEngine.SILENT_ENGINE;
+            org.jackhuang.hmcl.task.FileDownloadTask.setSilentEngineEnabled(enabled);
+            LOG.info("SilentEngine game-jar hook enabled: " + enabled);
+        });
+        LOG.info("SilentEngine game-jar hook initial: "
+                + (settings().downloadEngineProperty().get()
+                == org.jackhuang.hmcl.setting.DownloadEngine.SILENT_ENGINE));
         getRootPage().getMainPage().showUpdateProperty().bind(UpdateChecker.checkingUpdateProperty().not().and(UpdateChecker.outdatedProperty()));
         getRootPage().getMainPage().showUpdateDialogProperty().bind(
                 decorator.backableProperty().not()
