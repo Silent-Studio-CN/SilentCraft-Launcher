@@ -19,4 +19,12 @@ jobs:
         env:
           GITCODE_TOKEN: ${{ secrets.GITCODE_TOKEN }}
         run: |
-          git push "https://wsrlikemc:${GITCODE_TOKEN}@gitcode.com/wsrlikemc/SilentCraft-Launcher.git" HEAD:main --force
+          git fetch origin main
+          git reset --hard origin/main
+          for attempt in 1 2 3; do
+            if git push "https://wsrlikemc:${GITCODE_TOKEN}@gitcode.com/wsrlikemc/SilentCraft-Launcher.git" +HEAD:main --force; then
+              exit 0
+            fi
+            sleep 3
+          done
+          exit 1
