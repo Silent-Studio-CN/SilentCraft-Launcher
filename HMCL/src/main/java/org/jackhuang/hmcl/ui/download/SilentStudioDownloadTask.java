@@ -26,7 +26,9 @@ import java.util.concurrent.atomic.AtomicLong;
 /// The Paper CDN limits a single connection, so splitting the file into chunks and
 /// fetching them concurrently is noticeably faster than a sequential download.
 public final class SilentStudioDownloadTask extends Task<Void> {
-    private static final int SEGMENTS = 4;
+    private static final int MAX_SEGMENTS = 4;
+    private static final long SMALL_FILE = 1024L * 1024;
+    private static final long MEDIUM_FILE = 8L * 1024 * 1024;
 
     private final String url;
     private final Path target;
@@ -52,13 +54,20 @@ public final class SilentStudioDownloadTask extends Task<Void> {
             return;
         }
 
-        List<Path> parts = new ArrayList<>(SEGMENTS);
+        int segments = total < SMALL_FILE ? 1 : total < MEDIUM_FILE ? 2 : MAX_SEGMENTS;
+        if (segments == 1) {
+            downloadWhole(url, target);
+            verify();
+            return;
+        }
+
+        List<Path> parts = new ArrayList<>(segments);
         AtomicLong downloaded = new AtomicLong();
 
         Thread speedReporter = startSpeedReporter(downloaded);
 
         try {
-            downloadSegments(parts, downloaded, total);
+            downloadSegments(parts, downloaded, total, segments);
         } catch (IOException e) {
             for (Path part : parts) {
                 Files.deleteIfExists(part);
@@ -107,13 +116,13 @@ public final class SilentStudioDownloadTask extends Task<Void> {
         thread.interrupt();
     }
 
-    private void downloadSegments(List<Path> parts, AtomicLong downloaded, long total) throws Exception {
-        long chunkSize = (total + SEGMENTS - 1) / SEGMENTS;
-        ExecutorService pool = Executors.newFixedThreadPool(SEGMENTS);
-        List<Future<?>> futures = new ArrayList<>(SEGMENTS);
+    private void downloadSegments(List<Path> parts, AtomicLong downloaded, long total, int segments) throws Exception {
+        long chunkSize = (total + segments - 1) / segments;
+        ExecutorService pool = Executors.newFixedThreadPool(segments);
+        List<Future<?>> futures = new ArrayList<>(segments);
 
         try {
-            for (int i = 0; i < SEGMENTS; i++) {
+            for (int i = 0; i < segments; i++) {
                 long start = i * chunkSize;
                 if (start >= total) {
                     break;
@@ -123,7 +132,7 @@ public final class SilentStudioDownloadTask extends Task<Void> {
                 parts.add(part);
 
                 futures.add(pool.submit(() -> {
-                    downloadRange(part, start, end, downloaded);
+                    downloadRange(part, start, end, downloaded, total);
                     return null;
                 }));
             }
@@ -144,7 +153,7 @@ public final class SilentStudioDownloadTask extends Task<Void> {
         }
     }
 
-    private void downloadRange(Path part, long start, long end, AtomicLong downloaded) throws IOException {
+    private void downloadRange(Path part, long start, long end, AtomicLong downloaded, long total) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         connection.setConnectTimeout(30_000);
         connection.setReadTimeout(60_000);
@@ -164,7 +173,7 @@ public final class SilentStudioDownloadTask extends Task<Void> {
                 int read;
                 while ((read = in.read(buffer)) > 0) {
                     out.write(buffer, 0, read);
-                    updateProgress(downloaded.addAndGet(read), size);
+                    updateProgress(downloaded.addAndGet(read), total);
                 }
             }
         } finally {
