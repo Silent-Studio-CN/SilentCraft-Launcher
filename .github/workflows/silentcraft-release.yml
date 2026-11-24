@@ -95,7 +95,7 @@ jobs:
                     "SilentCraft Launcher-v${VERSION}-build${BUILD}-arm64.exe" \
                     > "SilentCraft Launcher-v${VERSION}-build${BUILD}.sha256"
 
-          echo "TAG=v${VERSION}-build${BUILD}" >> "$GITHUB_ENV"
+          echo "TAG=v${VERSION}" >> "$GITHUB_ENV"
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
           echo "BUILD=${BUILD}" >> "$GITHUB_ENV"
 
@@ -103,12 +103,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag || true
           gh release create "$TAG" \
             "SilentCraft Launcher-v${VERSION}-build${BUILD}.jar" \
             "SilentCraft Launcher-v${VERSION}-build${BUILD}-x64.exe" \
             "SilentCraft Launcher-v${VERSION}-build${BUILD}-arm64.exe" \
             "SilentCraft Launcher-v${VERSION}-build${BUILD}.sha256" \
             --target "$GITHUB_SHA" \
-            --title "SilentCraft Launcher v${VERSION} build ${BUILD}" \
+            --title "SilentCraft Launcher v${VERSION}" \
             --notes "SilentCraft Launcher v${VERSION} build ${BUILD}" \
-            --prerelease
+            --latest
