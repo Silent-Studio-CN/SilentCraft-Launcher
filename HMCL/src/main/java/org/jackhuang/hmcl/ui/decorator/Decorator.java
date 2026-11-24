@@ -895,6 +895,9 @@ public final class Decorator {
             newStage.initStyle(style);
         }
         nativeDecorationEnabled = nativeDecoration != null && style == nativeDecoration.style;
+        if (!nativeDecorationEnabled) {
+            newStage.setResizable(true);
+        }
         if (nativeDecoration != null) {
             nativeDecoration.setContent(null);
             if (nativeDecorationEnabled) {
