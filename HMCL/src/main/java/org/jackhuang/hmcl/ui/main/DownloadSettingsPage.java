@@ -105,6 +105,7 @@ public class DownloadSettingsPage extends StackPane {
                 case SILENT_ENGINE -> "SilentEngine";
             });
             enginePane.setItems(DownloadEngine.values());
+            enginePane.setDescriptionConverter(e -> i18n("settings.launcher.download_engine.desc"));
             enginePane.valueProperty().bindBidirectional(settings().downloadEngineProperty());
 
             ComponentSublist fileCommonLocationSublist = new ComponentSublist(() -> {
