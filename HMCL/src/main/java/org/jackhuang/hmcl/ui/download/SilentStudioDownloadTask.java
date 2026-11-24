@@ -103,8 +103,8 @@ public final class SilentStudioDownloadTask extends Task<Void> {
                 long elapsedMillis = (System.nanoTime() - startedNanos) / 1_000_000L;
                 long bytes = Files.exists(target) ? Files.size(target) : 0;
                 double speed = elapsedMillis > 0 ? bytes / 1024.0 / (elapsedMillis / 1000.0) : 0;
-                LOG.info(String.format("SilentEngine %s: %d bytes in %d ms (%.1f KiB/s)",
-                        target.getFileName(), bytes, elapsedMillis, speed));
+                LOG.info(String.format("SILENTENGINE Successfully Downloaded in %.1f Seconds",
+                        elapsedMillis / 1000.0));
             } catch (Exception ignored) {
             }
         }
