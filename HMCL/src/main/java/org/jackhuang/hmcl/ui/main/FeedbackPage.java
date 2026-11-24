@@ -32,7 +32,7 @@ public class FeedbackPage extends SpinnerPane {
         {
             var users = LineButton.createExternalLinkButton(Metadata.GROUPS_URL);
             users.setLargeTitle(true);
-            users.setLeading(FXUtils.newBuiltinImage("/assets/img/icon.png"));
+            users.setLeading(FXUtils.newBuiltinImage("/assets/img/hmcl.png"));
             users.setTitle(i18n("contact.chat.qq_group"));
             users.setSubtitle(i18n("contact.chat.qq_group.statement"));
 
@@ -47,18 +47,25 @@ public class FeedbackPage extends SpinnerPane {
 
         ComponentList feedback = new ComponentList();
         {
-            var github = LineButton.createExternalLinkButton("https://github.com/HMCL-dev/HMCL/issues/new/choose");
-            github.setLargeTitle(true);
-            github.setTitle(i18n("contact.feedback.github"));
-            github.setSubtitle(i18n("contact.feedback.github.statement"));
+            var ownGitHub = LineButton.createExternalLinkButton(Metadata.REPOSITORY_URL + "/issues/new/choose");
+            ownGitHub.setLargeTitle(true);
+            ownGitHub.setTitle(i18n("contact.feedback.silentcraft.github"));
+            ownGitHub.setSubtitle(i18n("contact.feedback.silentcraft.github.statement"));
+
+            var hmclGitHub = LineButton.createExternalLinkButton("https://github.com/HMCL-dev/HMCL/issues/new/choose");
+            hmclGitHub.setLargeTitle(true);
+            hmclGitHub.setTitle(i18n("contact.feedback.github"));
+            hmclGitHub.setSubtitle(i18n("contact.feedback.github.statement"));
 
             holder.add(FXUtils.onWeakChangeAndOperate(Themes.darkModeProperty(), darkMode -> {
-                github.setLeading(darkMode
+                var icon = darkMode
                         ? FXUtils.newBuiltinImage("/assets/img/github-white.png")
-                        : FXUtils.newBuiltinImage("/assets/img/github.png"));
+                        : FXUtils.newBuiltinImage("/assets/img/github.png");
+                ownGitHub.setLeading(icon);
+                hmclGitHub.setLeading(icon);
             }));
 
-            feedback.getContent().setAll(github);
+            feedback.getContent().setAll(ownGitHub, hmclGitHub);
         }
 
         content.getChildren().addAll(
