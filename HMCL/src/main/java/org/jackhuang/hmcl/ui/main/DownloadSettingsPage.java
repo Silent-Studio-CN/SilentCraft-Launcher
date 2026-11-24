@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.*;
+import org.jackhuang.hmcl.setting.DownloadEngine;
 import org.jackhuang.hmcl.setting.DownloadSource;
 import org.jackhuang.hmcl.setting.EnumCommonDirectory;
 import org.jackhuang.hmcl.setting.ProxyType;
@@ -68,6 +69,15 @@ public class DownloadSettingsPage extends StackPane {
                     return I18n.hasKey(bundleKey) ? i18n(bundleKey) : null;
                 };
 
+                var enginePane = new LineSelectButton<DownloadEngine>();
+                enginePane.setTitle(i18n("settings.launcher.download_engine"));
+                enginePane.setNullSafeConverter(e -> switch (e) {
+                    case HMCL -> "HMCL";
+                    case SILENT_ENGINE -> "SilentEngine";
+                });
+                enginePane.setItems(DownloadEngine.values());
+                enginePane.valueProperty().bindBidirectional(settings().downloadEngineProperty());
+
                 var versionListSourcePane = new LineSelectButton<DownloadSource>();
                 versionListSourcePane.setTitle(i18n("settings.launcher.version_list_source"));
                 versionListSourcePane.setNullSafeConverter(converter);
@@ -88,7 +98,7 @@ public class DownloadSettingsPage extends StackPane {
                 defaultAddonSourcePane.setItems("modrinth", "curseforge");
                 defaultAddonSourcePane.valueProperty().bindBidirectional(settings().defaultAddonSourceProperty());
 
-                gameContent.getContent().setAll(versionListSourcePane, downloadSourcePane, defaultAddonSourcePane);
+                gameContent.getContent().setAll(enginePane, versionListSourcePane, downloadSourcePane, defaultAddonSourcePane);
             }
 
             content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.game_content")), gameContent);

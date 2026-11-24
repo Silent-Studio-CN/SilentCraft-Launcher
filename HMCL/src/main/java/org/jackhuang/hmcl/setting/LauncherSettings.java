@@ -509,6 +509,14 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
     }
 
     /// The selected file download source.
+    @SerializedName("downloadEngine")
+    private final ObjectProperty<DownloadEngine> downloadEngine = new SimpleObjectProperty<>(DownloadEngine.SILENT_ENGINE);
+
+    /// Returns the selected file download engine.
+    public ObjectProperty<DownloadEngine> downloadEngineProperty() {
+        return downloadEngine;
+    }
+
     @SerializedName("fileDownloadSource")
     private final ObjectProperty<DownloadSource> fileDownloadSource = new RawPreservingObjectProperty<>(DownloadSource.MIRROR);
 

@@ -61,7 +61,12 @@ public final class PluginDownloadPage extends DownloadListPage {
             return;
         }
 
-        Controllers.taskDialog(new SilentStudioDownloadTask(plugin.url(), directory.resolve(plugin.filename()), 0, null),
+        org.jackhuang.hmcl.task.Task<?> task =
+                org.jackhuang.hmcl.setting.SettingsManager.settings()
+                        .downloadEngineProperty().get() == org.jackhuang.hmcl.setting.DownloadEngine.HMCL
+                        ? new FileDownloadTask(plugin.url(), directory.resolve(plugin.filename()))
+                        : new SilentStudioDownloadTask(plugin.url(), directory.resolve(plugin.filename()), 0, null);
+        Controllers.taskDialog(task,
                 i18n("message.downloading.file", plugin.filename()),
                 TaskCancellationAction.NORMAL);
     }
