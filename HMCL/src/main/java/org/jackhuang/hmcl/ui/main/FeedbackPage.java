@@ -32,7 +32,12 @@ public class FeedbackPage extends SpinnerPane {
         {
             var users = LineButton.createExternalLinkButton(Metadata.GROUPS_URL);
             users.setLargeTitle(true);
-            users.setLeading(FXUtils.newBuiltinImage("/assets/img/hmcl.png"));
+            javafx.scene.image.ImageView hmclIcon = new javafx.scene.image.ImageView(
+                    FXUtils.newBuiltinImage("/assets/img/hmcl.png"));
+            hmclIcon.setFitWidth(36);
+            hmclIcon.setFitHeight(36);
+            hmclIcon.setPreserveRatio(true);
+            users.setLeading(hmclIcon);
             users.setTitle(i18n("contact.chat.qq_group"));
             users.setSubtitle(i18n("contact.chat.qq_group.statement"));
 
