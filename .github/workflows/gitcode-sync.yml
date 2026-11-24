@@ -22,7 +22,7 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           for attempt in 1 2 3; do
-            if git push "https://wsrlikemc:${GITCODE_TOKEN}@gitcode.com/wsrlikemc/SilentCraft-Launcher.git" +HEAD:main --force; then
+            if git push "https://wsrlikemc:${GITCODE_TOKEN}@gitcode.com/Silent-Studio-CN/SilentCraft-Launcher.git" +HEAD:main --force; then
               exit 0
             fi
             sleep 3
