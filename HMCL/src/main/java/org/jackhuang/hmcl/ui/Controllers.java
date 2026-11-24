@@ -361,6 +361,12 @@ public final class Controllers {
             }
         }
 
+        if (!settings().transparentTitleBarDefaultAppliedProperty().get()) {
+            settings().windowTransparentProperty().set(true);
+            settings().transparentTitleBarDefaultAppliedProperty().set(true);
+            LOG.info("Applied default transparent title bar");
+        }
+
         configureMainStage(stage);
         setupMacOSAboutWindow();
 

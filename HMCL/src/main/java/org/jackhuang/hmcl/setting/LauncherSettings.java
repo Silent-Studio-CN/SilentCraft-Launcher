@@ -507,6 +507,14 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
         return downloadSpeedLimit;
     }
 
+    @SerializedName("transparentTitleBarDefaultApplied")
+    private final BooleanProperty transparentTitleBarDefaultApplied = new SimpleBooleanProperty(false);
+
+    /// Whether the transparent title bar default has already been applied to an existing configuration.
+    public BooleanProperty transparentTitleBarDefaultAppliedProperty() {
+        return transparentTitleBarDefaultApplied;
+    }
+
     /// The selected game version list download source.
     @SerializedName("versionListSource")
     private final ObjectProperty<DownloadSource> versionListSource = new RawPreservingObjectProperty<>(DownloadSource.MIRROR);
