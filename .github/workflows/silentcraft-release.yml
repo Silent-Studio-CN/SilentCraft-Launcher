@@ -7,32 +7,83 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build-jar:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '25'
+      - name: Build JAR
+        run: ./gradlew :HMCL:shadowJar --no-daemon --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: launcher-jar
+          path: HMCL/build/libs/HMCL-*.jar
+          if-no-files-found: error
 
-      - name: Build JAR and EXE
-        run: ./gradlew :HMCL:shadowJar :HMCL:makeExecutables --no-daemon --stacktrace
+  build-native-launcher:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x64
+            artifact: launcher-x64
+          - os: windows-11-arm
+            arch: ARM64
+            artifact: launcher-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout HMCLauncher
+        uses: actions/checkout@v4
+        with:
+          repository: HMCL-dev/HMCLauncher
+          ref: 3.7.0.1
+          path: HMCLauncher-src
+      - name: Configure
+        working-directory: HMCLauncher-src
+        run: cmake -A ${{ matrix.arch }} -B build
+      - name: Build
+        working-directory: HMCLauncher-src
+        run: cmake --build build --config Release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: HMCLauncher-src/build/Release/HMCLauncher.exe
+          if-no-files-found: error
 
-      - name: Collect release assets
+  release:
+    needs: [build-jar, build-native-launcher]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Package
         run: |
           VERSION="3.18"
           BUILD="$(date +%y%m%d%H%M%S)"
-          JAR="$(ls HMCL/build/libs/HMCL-*.jar | head -n 1)"
-          EXE="$(ls HMCL/build/libs/HMCL-*.exe | head -n 1)"
+          JAR="$(find artifacts/launcher-jar -name 'HMCL-*.jar' | head -n 1)"
+          X64="artifacts/launcher-x64/HMCLauncher.exe"
+          ARM64="artifacts/launcher-arm64/HMCLauncher.exe"
+
+          python3 - "$JAR" "$X64" "SilentCraft Launcher-v${VERSION}-build${BUILD}-x64.exe" <<'PY'
+          import sys
+          jar = open(sys.argv[1], 'rb').read()
+          launcher = open(sys.argv[2], 'rb').read()
+          open(sys.argv[3], 'wb').write(launcher + jar)
+          PY
+
+          python3 - "$JAR" "$ARM64" "SilentCraft Launcher-v${VERSION}-build${BUILD}-arm64.exe" <<'PY'
+          import sys
+          jar = open(sys.argv[1], 'rb').read()
+          launcher = open(sys.argv[2], 'rb').read()
+          open(sys.argv[3], 'wb').write(launcher + jar)
+          PY
 
           cp "$JAR" "SilentCraft Launcher-v${VERSION}-build${BUILD}.jar"
-          cp "$EXE" "SilentCraft Launcher-v${VERSION}-build${BUILD}-x64.exe"
-          cp "$EXE" "SilentCraft Launcher-v${VERSION}-build${BUILD}-arm64.exe"
-
           sha256sum "SilentCraft Launcher-v${VERSION}-build${BUILD}.jar" \
                     "SilentCraft Launcher-v${VERSION}-build${BUILD}-x64.exe" \
                     "SilentCraft Launcher-v${VERSION}-build${BUILD}-arm64.exe" \
