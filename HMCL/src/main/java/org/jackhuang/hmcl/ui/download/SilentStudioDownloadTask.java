@@ -74,6 +74,8 @@ public final class SilentStudioDownloadTask extends Task<Void> {
 
         try {
             downloadSegments(parts, downloaded, total, segments);
+        } catch (java.util.concurrent.CancellationException e) {
+            throw e;
         } catch (IOException e) {
             for (Path part : parts) {
                 Files.deleteIfExists(part);
@@ -146,9 +148,18 @@ public final class SilentStudioDownloadTask extends Task<Void> {
             for (Future<?> future : futures) {
                 future.get();
             }
+        } catch (java.util.concurrent.CancellationException e) {
+            for (Future<?> future : futures) {
+                future.cancel(true);
+            }
+            throw e;
         } catch (Exception e) {
             for (Future<?> future : futures) {
                 future.cancel(true);
+            }
+            Throwable cause = e.getCause();
+            if (cause instanceof java.util.concurrent.CancellationException cancellation) {
+                throw cancellation;
             }
             if (e instanceof IOException ioException) {
                 throw ioException;
@@ -178,6 +189,7 @@ public final class SilentStudioDownloadTask extends Task<Void> {
                 byte[] buffer = new byte[128 * 1024];
                 int read;
                 while ((read = in.read(buffer)) > 0) {
+                    checkCancelled();
                     out.write(buffer, 0, read);
                     throttle(read);
                     updateProgress(downloaded.addAndGet(read), total);
@@ -215,11 +227,19 @@ public final class SilentStudioDownloadTask extends Task<Void> {
             byte[] buffer = new byte[128 * 1024];
             int read;
             while ((read = in.read(buffer)) > 0) {
+                checkCancelled();
                 out.write(buffer, 0, read);
                 throttle(read);
             }
         } finally {
             connection.disconnect();
+        }
+    }
+
+    /// Throws when the owning task has been cancelled.
+    private void checkCancelled() {
+        if (isCancelled()) {
+            throw new java.util.concurrent.CancellationException("Download cancelled");
         }
     }
 
