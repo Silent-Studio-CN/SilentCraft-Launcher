@@ -6,6 +6,8 @@ import org.jackhuang.hmcl.task.FetchTask;
 import org.jackhuang.hmcl.task.Task;
 import org.jetbrains.annotations.Nullable;
 
+import static org.jackhuang.hmcl.util.logging.Logger.LOG;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,6 +52,7 @@ public final class SilentStudioDownloadTask extends Task<Void> {
 
     @Override
     public void execute() throws Exception {
+        long startedNanos = System.nanoTime();
         Files.createDirectories(target.getParent());
         throttleStartNanos = System.nanoTime();
 
@@ -96,6 +99,14 @@ public final class SilentStudioDownloadTask extends Task<Void> {
             }
         } finally {
             Files.deleteIfExists(temp);
+            try {
+                long elapsedMillis = (System.nanoTime() - startedNanos) / 1_000_000L;
+                long bytes = Files.exists(target) ? Files.size(target) : 0;
+                double speed = elapsedMillis > 0 ? bytes / 1024.0 / (elapsedMillis / 1000.0) : 0;
+                LOG.info(String.format("SilentEngine %s: %d bytes in %d ms (%.1f KiB/s)",
+                        target.getFileName(), bytes, elapsedMillis, speed));
+            } catch (Exception ignored) {
+            }
         }
     }
 
