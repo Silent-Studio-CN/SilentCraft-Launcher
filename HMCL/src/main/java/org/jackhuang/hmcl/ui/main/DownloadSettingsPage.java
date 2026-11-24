@@ -69,15 +69,6 @@ public class DownloadSettingsPage extends StackPane {
                     return I18n.hasKey(bundleKey) ? i18n(bundleKey) : null;
                 };
 
-                var enginePane = new LineSelectButton<DownloadEngine>();
-                enginePane.setTitle(i18n("settings.launcher.download_engine"));
-                enginePane.setNullSafeConverter(e -> switch (e) {
-                    case HMCL -> "HMCL";
-                    case SILENT_ENGINE -> "SilentEngine";
-                });
-                enginePane.setItems(DownloadEngine.values());
-                enginePane.valueProperty().bindBidirectional(settings().downloadEngineProperty());
-
                 var versionListSourcePane = new LineSelectButton<DownloadSource>();
                 versionListSourcePane.setTitle(i18n("settings.launcher.version_list_source"));
                 versionListSourcePane.setNullSafeConverter(converter);
@@ -98,7 +89,7 @@ public class DownloadSettingsPage extends StackPane {
                 defaultAddonSourcePane.setItems("modrinth", "curseforge");
                 defaultAddonSourcePane.valueProperty().bindBidirectional(settings().defaultAddonSourceProperty());
 
-                gameContent.getContent().setAll(enginePane, versionListSourcePane, downloadSourcePane, defaultAddonSourcePane);
+                gameContent.getContent().setAll(versionListSourcePane, downloadSourcePane, defaultAddonSourcePane);
             }
 
             content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("settings.launcher.game_content")), gameContent);
@@ -106,6 +97,15 @@ public class DownloadSettingsPage extends StackPane {
 
         {
             var downloadList = new ComponentList();
+
+            var enginePane = new LineSelectButton<DownloadEngine>();
+            enginePane.setTitle(i18n("settings.launcher.download_engine"));
+            enginePane.setNullSafeConverter(e -> switch (e) {
+                case HMCL -> "HMCL";
+                case SILENT_ENGINE -> "SilentEngine";
+            });
+            enginePane.setItems(DownloadEngine.values());
+            enginePane.valueProperty().bindBidirectional(settings().downloadEngineProperty());
 
             ComponentSublist fileCommonLocationSublist = new ComponentSublist(() -> {
                 MultiFileItem<EnumCommonDirectory> fileCommonLocation = new MultiFileItem<>();
@@ -200,7 +200,7 @@ public class DownloadSettingsPage extends StackPane {
             });
             speedLimitSublist.setTitle(i18n("settings.launcher.download.speed_limit"));
 
-            downloadList.getContent().addAll(fileCommonLocationSublist, downloadThreadsSublist, speedLimitSublist);
+            downloadList.getContent().addAll(enginePane, fileCommonLocationSublist, downloadThreadsSublist, speedLimitSublist);
             content.getChildren().addAll(ComponentList.createComponentListTitle(i18n("download")), downloadList);
         }
 
