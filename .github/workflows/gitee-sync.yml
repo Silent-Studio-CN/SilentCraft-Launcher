@@ -1,0 +1,22 @@
+name: Sync Gitee
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push main to Gitee
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          git push "https://SilentStudio:${GITEE_TOKEN}@gitee.com/SilentStudio/SilentCraft-Launcher.git" HEAD:main --force
