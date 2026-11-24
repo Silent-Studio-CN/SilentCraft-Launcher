@@ -254,6 +254,9 @@ public final class LogWindow extends Stage {
         private static final PseudoClass INFO = PseudoClass.getPseudoClass("info");
         private static final PseudoClass DEBUG = PseudoClass.getPseudoClass("debug");
         private static final PseudoClass TRACE = PseudoClass.getPseudoClass("trace");
+        private static final PseudoClass SILENT_OK = PseudoClass.getPseudoClass("silent-ok");
+        private static final PseudoClass SILENT_CANCEL = PseudoClass.getPseudoClass("silent-cancel");
+        private static final PseudoClass SILENT_FAIL = PseudoClass.getPseudoClass("silent-fail");
         private final JFXSnackbar snackbar = new JFXSnackbar();
 
         LogWindowSkin(LogWindowImpl control) {
@@ -348,6 +351,11 @@ public final class LogWindow extends Stage {
                         pseudoClassStateChanged(INFO, !empty && item.getLevel() == Log4jLevel.INFO);
                         pseudoClassStateChanged(DEBUG, !empty && item.getLevel() == Log4jLevel.DEBUG);
                         pseudoClassStateChanged(TRACE, !empty && item.getLevel() == Log4jLevel.TRACE);
+
+                        String line = empty ? "" : item.getLog();
+                        pseudoClassStateChanged(SILENT_OK, line.contains("SILENTENGINE Successfully"));
+                        pseudoClassStateChanged(SILENT_CANCEL, line.contains("SILENTENGINE Download Cancelled"));
+                        pseudoClassStateChanged(SILENT_FAIL, line.contains("SILENTENGINE Download Failed"));
 
                         if (empty) {
                             setText(null);

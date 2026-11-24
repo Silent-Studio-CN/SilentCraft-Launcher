@@ -2209,3 +2209,15 @@
 .server-console .scroll-pane .viewport {
     -fx-background-color: transparent;
 }
+
+.log-window-list-cell:silent-ok {
+    -fx-text-fill: #55ff55;
+}
+
+.log-window-list-cell:silent-cancel {
+    -fx-text-fill: #ffd75e;
+}
+
+.log-window-list-cell:silent-fail {
+    -fx-text-fill: #ff5555;
+}
