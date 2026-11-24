@@ -109,13 +109,19 @@ public final class SilentStudioDownloadTask extends Task<Void> {
             try {
                 long elapsedMillis = (System.nanoTime() - startedNanos) / 1_000_000L;
                 double seconds = elapsedMillis / 1000.0;
+                String message;
+                String color;
                 if (success) {
-                    LOG.info(String.format("SILENTENGINE Successfully Downloaded in %.1f Seconds", seconds));
+                    message = String.format("SILENTENGINE Successfully Downloaded in %.1f Seconds", seconds);
+                    color = "\u001B[32m";
                 } else if (cancelled) {
-                    LOG.warning(String.format("SILENTENGINE Download Cancelled after %.1f Seconds", seconds));
+                    message = String.format("SILENTENGINE Download Cancelled after %.1f Seconds", seconds);
+                    color = "\u001B[33m";
                 } else {
-                    LOG.error(String.format("SILENTENGINE Download Failed after %.1f Seconds", seconds));
+                    message = String.format("SILENTENGINE Download Failed after %.1f Seconds", seconds);
+                    color = "\u001B[31m";
                 }
+                System.out.println(color + message + "\u001B[0m");
             } catch (Exception ignored) {
             }
         }

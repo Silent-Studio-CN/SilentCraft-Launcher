@@ -115,7 +115,10 @@ public final class ServerConsole {
         try {
             int current = Integer.parseInt(System.getProperty("java.specification.version"));
             if (current >= required) {
-                return Path.of(System.getProperty("java.home"), "bin", "java");
+                return Path.of(System.getProperty("java.home"), "bin",
+                        org.jackhuang.hmcl.util.platform.SystemInfo.CURRENT_OS
+                                == org.jackhuang.hmcl.util.platform.OperatingSystem.WINDOWS
+                                ? "java.exe" : "java");
             }
         } catch (Exception ignored) {
         }
