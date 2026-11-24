@@ -363,6 +363,8 @@ public final class Controllers {
 
         if (!settings().titleBarTransparentDefaultAppliedProperty().get()) {
             settings().titleBarTransparentProperty().set(true);
+            settings().getThemeAppearanceOverrides()
+                    .add(org.jackhuang.hmcl.setting.LauncherSettings.THEME_APPEARANCE_TITLE_BAR_TRANSPARENT);
             settings().titleBarTransparentDefaultAppliedProperty().set(true);
             LOG.info("Applied default transparent title bar");
         }
