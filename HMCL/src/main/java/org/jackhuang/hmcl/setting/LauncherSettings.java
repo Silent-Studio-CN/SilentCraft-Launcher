@@ -179,7 +179,7 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
 
     /// Whether preview builds are accepted by update checks.
     @SerializedName("acceptPreviewUpdate")
-    private final BooleanProperty acceptPreviewUpdate = new SimpleBooleanProperty(false);
+    private final BooleanProperty acceptPreviewUpdate = new SimpleBooleanProperty(true);
 
     /// Returns the preview update opt-in property.
     public BooleanProperty acceptPreviewUpdateProperty() {
@@ -327,7 +327,7 @@ public final class LauncherSettings extends ObservableSetting implements JsonSch
 
     /// Whether translucent launcher backgrounds reveal content behind the window.
     @SerializedName("windowTransparent")
-    private final BooleanProperty windowTransparent = new SimpleBooleanProperty(false);
+    private final BooleanProperty windowTransparent = new SimpleBooleanProperty(true);
 
     /// Returns the window transparency property.
     public BooleanProperty windowTransparentProperty() {

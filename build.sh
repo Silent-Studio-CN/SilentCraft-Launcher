@@ -13,7 +13,7 @@ echo "Gradle:    $GRADLE"
 "$GRADLE" :HMCL:shadowJar --no-daemon --console=plain
 
 mkdir -p out
-NAME="SilentCraft Launcher v3.18.jar"
+NAME="SilentCraft Launcher-v3.18-build$(date +%y%m%d%H%M%S).jar"
 cp HMCL/build/libs/HMCL-3.18.SNAPSHOT.jar "out/$NAME"
 echo
 echo "== Done =="
