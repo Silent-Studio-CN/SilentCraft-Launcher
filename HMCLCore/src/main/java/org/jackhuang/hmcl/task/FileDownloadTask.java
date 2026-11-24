@@ -31,6 +31,24 @@ import static org.jackhuang.hmcl.util.logging.Logger.LOG;
 /// @author huangyuhui
 public class FileDownloadTask extends FetchTask<Void> {
 
+    /// Optional external engine used for large game files after HMCL decides a download is needed.
+    public interface SilentDownloader {
+        void download(WebURL url, Path target) throws Exception;
+    }
+
+    private static volatile @Nullable SilentDownloader silentDownloader;
+    private static volatile boolean silentEnabled;
+
+    /// Enables or disables the external engine for game jar downloads.
+    public static void setSilentEngineEnabled(boolean enabled) {
+        silentEnabled = enabled;
+    }
+
+    /// Installs the external engine callback.
+    public static void setSilentDownloader(@Nullable SilentDownloader downloader) {
+        silentDownloader = downloader;
+    }
+
     public record IntegrityCheck(String algorithm, String checksum) {
         public IntegrityCheck(String algorithm, String checksum) {
             this.algorithm = requireNonNull(algorithm);

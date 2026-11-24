@@ -366,6 +366,16 @@ public final class Controllers {
 
         decorator = new Decorator(getRootPage(), Controllers::configureMainStage);
         Scene mainScene = decorator.attachStage(stage);
+
+        org.jackhuang.hmcl.task.FileDownloadTask.setSilentDownloader((url, target) ->
+                new org.jackhuang.hmcl.ui.download.SilentStudioDownloadTask(
+                        url.toString(), target, 0, null).execute());
+        org.jackhuang.hmcl.task.FileDownloadTask.setSilentEngineEnabled(
+                settings().downloadEngineProperty().get()
+                        == org.jackhuang.hmcl.setting.DownloadEngine.SILENT_ENGINE);
+        settings().downloadEngineProperty().addListener((observable, oldValue, newValue) ->
+                org.jackhuang.hmcl.task.FileDownloadTask.setSilentEngineEnabled(
+                        newValue == org.jackhuang.hmcl.setting.DownloadEngine.SILENT_ENGINE));
         getRootPage().getMainPage().showUpdateProperty().bind(UpdateChecker.checkingUpdateProperty().not().and(UpdateChecker.outdatedProperty()));
         getRootPage().getMainPage().showUpdateDialogProperty().bind(
                 decorator.backableProperty().not()
