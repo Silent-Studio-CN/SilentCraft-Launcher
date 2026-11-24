@@ -36,12 +36,17 @@ jobs:
             artifact: launcher-arm64
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Checkout HMCLauncher
         uses: actions/checkout@v4
         with:
           repository: HMCL-dev/HMCLauncher
           ref: 3.7.0.1
           path: HMCLauncher-src
+      - name: Use SilentCraft icon
+        shell: pwsh
+        run: Copy-Item assets/icon.ico HMCLauncher-src/HMCL.ico
       - name: Configure
         working-directory: HMCLauncher-src
         run: cmake -A ${{ matrix.arch }} -B build
