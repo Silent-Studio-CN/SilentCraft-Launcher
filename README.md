@@ -1,3 +1,9 @@
+<div align="center">
+
+简体中文 · [English](README.en.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Русский](README.ru.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [العربية](README.ar.md) · [Português](README.pt.md) · [Italiano](README.it.md) · [हिन्दी](README.hi.md) · [ไทย](README.th.md) · [Tiếng Việt](README.vi.md) · [Bahasa Indonesia](README.id.md) · [Türkçe](README.tr.md) · [Nederlands](README.nl.md)
+
+</div>
+
 # SilentCraft Launcher
 
 SilentCraft Launcher 是一个基于 [HMCL](https://github.com/HMCL-dev/HMCL) 的第三方 Minecraft 启动器分支，面向中文玩家，重点补充**服务端下载与管理**能力。
@@ -50,9 +56,14 @@ SilentCraft Launcher 是一个基于 [HMCL](https://github.com/HMCL-dev/HMCL) �
 - 使用不同的软件名称/版本来区分官方版本；
 - 不宣称是 HMCL 官方构建。
 
+## 反馈
+
+请前往 [SilentCodeTeams/feedback](https://github.com/SilentCodeTeams/feedback) 提交问题、建议或咨询。
+
 ## 链接
 
 - 仓库：<https://github.com/Silent-Studio-CN/SilentCraft-Launcher>
+- 反馈：<https://github.com/SilentCodeTeams/feedback>
 - 上游：<https://github.com/HMCL-dev/HMCL>
 
 ---
