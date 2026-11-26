@@ -322,12 +322,16 @@ public final class Decorator {
     ///
     /// @param edgeToEdge whether the attached stage is maximized under [WindowState]'s policy or full-screen
     private void updateWindowDecoration(boolean edgeToEdge) {
-        boolean customDecoration = !nativeDecorationEnabled && !edgeToEdge;
-        this.customDecoration = customDecoration;
+        // Transparent windows need per-pixel compositing and a large DropShadow.
+        // When transparency is off, keep the custom title bar but use an opaque
+        // stage: this avoids the compositor cost that causes animation stutter.
+        boolean transparentCustom = !nativeDecorationEnabled && !edgeToEdge
+                && Themes.windowTransparentProperty().get();
+        this.customDecoration = transparentCustom;
         applyWindowPadding();
-        shadowContainer.setEffect(customDecoration
+        shadowContainer.setEffect(transparentCustom
                 && SystemInfo.CURRENT_OS != OperatingSystem.WINDOWS ? windowShadow : null);
-        mainWindowPane.setWindowCornersRounded(customDecoration);
+        mainWindowPane.setWindowCornersRounded(transparentCustom);
     }
 
     /// Whether the current window state uses custom shadows.
@@ -816,10 +820,15 @@ public final class Decorator {
 
     /// Returns the preferred style for the configured native-decoration policy and current theme.
     ///
-    /// @return the system style when available and permitted by the policy; otherwise the custom transparent style
+    /// @return the system style when available and permitted by the policy; otherwise an opaque custom style,
+    ///         or a transparent custom style when window transparency is enabled
     private StageStyle preferredStageStyle() {
-        return nativeDecoration != null && !Themes.windowTransparentProperty().get()
-                ? nativeDecoration.style : StageStyle.TRANSPARENT;
+        if (nativeDecoration != null && !Themes.windowTransparentProperty().get())
+            return nativeDecoration.style;
+        if (Themes.windowTransparentProperty().get())
+            return StageStyle.TRANSPARENT;
+        // Opaque custom decoration avoids the per-pixel alpha compositing cost.
+        return StageStyle.UNDECORATED;
     }
 
     /// Replaces the attached stage when transparency requires a different decoration style.
@@ -931,7 +940,7 @@ public final class Decorator {
             }
         }
 
-        if (nativeDecorationEnabled) {
+        if (nativeDecorationEnabled || !Themes.windowTransparentProperty().get()) {
             scene.fillProperty().bind(Themes.colorSchemeProperty().getSurfaceContainer());
         } else {
             scene.fillProperty().unbind();
